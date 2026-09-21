@@ -1,8 +1,8 @@
 import { Column, CreateDateColumn, Entity, JoinColumn, OneToOne, PrimaryGeneratedColumn } from "typeorm";
-import { Seller } from "./seller.entity";
+import { Vendedor } from "./vendedor";
 
 @Entity("agencies")
-export class Agency {
+export class Inmobiliaria {
   @PrimaryGeneratedColumn()
   id!: number;
 
@@ -24,9 +24,9 @@ export class Agency {
   @Column({ type: "varchar", nullable: true, length: 255 })
   officeAddress!: string | null;
 
-  @OneToOne(() => Seller, { nullable: false })
+  @OneToOne(() => Vendedor, { nullable: false })
   @JoinColumn({ name: "seller_id" })
-  seller!: Seller;
+  seller!: Vendedor;
 
   @CreateDateColumn()
   createdAt!: Date;

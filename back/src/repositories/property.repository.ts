@@ -1,13 +1,13 @@
 import { Repository } from "typeorm";
 import { AppDataSource } from "../config/data-source";
-import { Property } from "../entities/property.entity";
+import { Propiedad } from "../entities/propiedad";
 
 class PropertyRepository {
-  private get repository(): Repository<Property> {
-    return AppDataSource.getRepository(Property);
+  private get repository(): Repository<Propiedad> {
+    return AppDataSource.getRepository(Propiedad);
   }
 
-  findById(id: number): Promise<Property | null> {
+  findById(id: number): Promise<Propiedad | null> {
     return this.repository.findOneBy({ id });
   }
 }

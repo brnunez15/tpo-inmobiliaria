@@ -1,9 +1,9 @@
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
-import { Agency } from "./agency.entity";
+import { Inmobiliaria } from "./inmobiliaria";
 import { OperationType, PropertyStatus, PropertyType } from "./enums";
 
 @Entity("properties")
-export class Property {
+export class Propiedad {
   @PrimaryGeneratedColumn()
   id!: number;
 
@@ -55,9 +55,9 @@ export class Property {
   @Column({ type: "enum", enum: PropertyStatus, default: PropertyStatus.DRAFT })
   status!: PropertyStatus;
 
-  @ManyToOne(() => Agency, { nullable: false })
+  @ManyToOne(() => Inmobiliaria, { nullable: false })
   @JoinColumn({ name: "agency_id" })
-  agency!: Agency;
+  agency!: Inmobiliaria;
 
   @CreateDateColumn()
   createdAt!: Date;

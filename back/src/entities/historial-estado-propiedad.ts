@@ -1,9 +1,9 @@
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
-import { Property } from "./property.entity";
+import { Propiedad } from "./propiedad";
 import { PropertyStatus } from "./enums";
 
 @Entity("property_status_history")
-export class PropertyStatusHistory {
+export class HistorialEstadoPropiedad {
   @PrimaryGeneratedColumn()
   id!: number;
 
@@ -13,9 +13,9 @@ export class PropertyStatusHistory {
   @Column({ type: "enum", enum: PropertyStatus })
   toStatus!: PropertyStatus;
 
-  @ManyToOne(() => Property, { nullable: false, onDelete: "CASCADE" })
+  @ManyToOne(() => Propiedad, { nullable: false, onDelete: "CASCADE" })
   @JoinColumn({ name: "property_id" })
-  property!: Property;
+  property!: Propiedad;
 
   @CreateDateColumn()
   createdAt!: Date;

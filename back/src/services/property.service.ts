@@ -1,8 +1,8 @@
 import { propertyRepository } from "../repositories/property.repository";
-import { Property } from "../entities/property.entity";
+import { Propiedad } from "../entities/propiedad";
 
 class PropertyService {
-  getById(id: number): Promise<Property | null> {
+  getById(id: number): Promise<Propiedad | null> {
     return propertyRepository.findById(id);
   }
 }
