@@ -55,7 +55,7 @@ export class Propiedad {
   @Column({ type: "enum", enum: PropertyStatus, default: PropertyStatus.DRAFT })
   status!: PropertyStatus;
 
-  @ManyToOne(() => Inmobiliaria, { nullable: false })
+  @ManyToOne(() => Inmobiliaria, { nullable: false, onDelete: "RESTRICT", onUpdate: "CASCADE" })
   @JoinColumn({ name: "agency_id" })
   agency!: Inmobiliaria;
 

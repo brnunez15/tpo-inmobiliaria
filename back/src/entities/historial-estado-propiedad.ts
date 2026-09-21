@@ -13,7 +13,7 @@ export class HistorialEstadoPropiedad {
   @Column({ type: "enum", enum: PropertyStatus })
   toStatus!: PropertyStatus;
 
-  @ManyToOne(() => Propiedad, { nullable: false, onDelete: "CASCADE" })
+  @ManyToOne(() => Propiedad, { nullable: false, onDelete: "CASCADE", onUpdate: "CASCADE" })
   @JoinColumn({ name: "property_id" })
   property!: Propiedad;
 

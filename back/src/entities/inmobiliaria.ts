@@ -24,7 +24,7 @@ export class Inmobiliaria {
   @Column({ type: "varchar", nullable: true, length: 255 })
   officeAddress!: string | null;
 
-  @OneToOne(() => Vendedor, { nullable: false })
+  @OneToOne(() => Vendedor, { nullable: false, onDelete: "RESTRICT", onUpdate: "CASCADE" })
   @JoinColumn({ name: "seller_id" })
   seller!: Vendedor;
 
