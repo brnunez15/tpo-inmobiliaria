@@ -65,6 +65,38 @@ class PropertyController {
     }
   }
 
+  async update(request: Request, response: Response): Promise<void> {
+    const { id } = request.params;
+
+    if (typeof id !== "string" || !ID_REGEX.test(id)) {
+      response.status(404).json({ message: "Property not found" });
+      return;
+    }
+
+    const parseResult = createPropertySchema.partial().safeParse(request.body);
+
+    if (!parseResult.success) {
+      response.status(400).json({ message: "Invalid body", issues: parseResult.error.issues });
+      return;
+    }
+
+    const { agencyId, price, totalAreaM2, ...rest } = parseResult.data;
+
+    try {
+      const property = await propertyService.update(Number(id), {
+        ...rest,
+        ...(price !== undefined ? { price: String(price) } : {}),
+        ...(totalAreaM2 !== undefined ? { totalAreaM2: String(totalAreaM2) } : {}),
+      });
+
+      response.json(property);
+    } catch (error) {
+      const message = (error as Error).message;
+      const status = message === "Property not found" ? 404 : 400;
+      response.status(status).json({ message });
+    }
+  }
+
   // Ejemplo de validacion de body con zod. Falta la entidad Comment
   // (repository + service) para persistir esto de verdad.
   async createComment(request: Request, response: Response): Promise<void> {

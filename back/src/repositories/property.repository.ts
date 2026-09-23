@@ -12,11 +12,16 @@ class PropertyRepository {
   }
 
   create(
-  data: Omit<Propiedad, "id" | "createdAt" | "updatedAt" | "agency">
-): Promise<Propiedad> {
-  const propiedad = this.repository.create(data);
-  return this.repository.save(propiedad);
-}
+    data: Omit<Propiedad, "id" | "createdAt" | "updatedAt" | "agency">
+  ): Promise<Propiedad> {
+    const propiedad = this.repository.create(data);
+    return this.repository.save(propiedad);
+  }
+
+  async update(id: number, data: Record<string, unknown>): Promise<Propiedad> {
+    await this.repository.update(id, data as object);
+    return this.repository.findOneByOrFail({ id });
+  }
 }
 
 export const propertyRepository = new PropertyRepository();
