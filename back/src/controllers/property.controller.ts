@@ -95,6 +95,27 @@ class PropertyController {
       const status = message === "Property not found" ? 404 : 400;
       response.status(status).json({ message });
     }
+    
+  }
+
+
+  async findAll(request: Request, response: Response): Promise<void> {
+    const { type, operation, minPrice, maxPrice, area, rooms, tags, search, sortBy, order } = request.query;
+
+    const properties = await propertyService.findAll({
+      type: typeof type === "string" ? type : undefined,
+      operation: typeof operation === "string" ? operation : undefined,
+      minPrice: typeof minPrice === "string" ? minPrice : undefined,
+      maxPrice: typeof maxPrice === "string" ? maxPrice : undefined,
+      area: typeof area === "string" ? area : undefined,
+      rooms: typeof rooms === "string" ? rooms : undefined,
+      tags: typeof tags === "string" ? tags : undefined,
+      search: typeof search === "string" ? search : undefined,
+      sortBy: typeof sortBy === "string" ? sortBy : undefined,
+      order: typeof order === "string" ? order : undefined,
+    });
+
+    response.json(properties);
   }
 
   // Ejemplo de validacion de body con zod. Falta la entidad Comment

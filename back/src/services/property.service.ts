@@ -22,6 +22,19 @@ interface CreatePropertyData {
   agency: { id: number };
 }
 
+interface PropertyFilters {
+  type?: string;
+  operation?: string;
+  minPrice?: string;
+  maxPrice?: string;
+  area?: string;
+  rooms?: string;
+  tags?: string;
+  search?: string;
+  sortBy?: string;
+  order?: string;
+}
+
 class PropertyService {
   getById(id: number): Promise<Propiedad | null> {
     return propertyRepository.findById(id);
@@ -74,6 +87,10 @@ class PropertyService {
     }
 
     return propertyRepository.update(id, data);
+  }
+
+  findAll(filters: PropertyFilters): Promise<Propiedad[]> {
+    return propertyRepository.findAll(filters);
   }
 }
 
