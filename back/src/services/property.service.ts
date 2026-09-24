@@ -1,5 +1,7 @@
 import { propertyRepository } from "../repositories/property.repository";
+import { galeriaImagenRepository } from "../repositories/galeria-imagen.repository";
 import { Propiedad } from "../entities/propiedad";
+import { GaleriaImagen } from "../entities/galeria-imagenes";
 import { PropertyType, OperationType, PropertyStatus } from "../entities/enums";
 
 interface CreatePropertyData {
@@ -22,9 +24,32 @@ interface CreatePropertyData {
   agency: { id: number };
 }
 
+interface PropertyFilters {
+  type?: string;
+  operation?: string;
+  minPrice?: string;
+  maxPrice?: string;
+  area?: string;
+  rooms?: string;
+  tags?: string;
+  search?: string;
+  sortBy?: string;
+  order?: string;
+}
+
+type PropertyWithGallery = Propiedad & { images: GaleriaImagen[] };
+
 class PropertyService {
-  getById(id: number): Promise<Propiedad | null> {
-    return propertyRepository.findById(id);
+  async getById(id: number): Promise<PropertyWithGallery | null> {
+    const property = await propertyRepository.findById(id);
+
+    if (!property) {
+      return null;
+    }
+
+    const images = await galeriaImagenRepository.findByPropertyId(id);
+
+    return { ...property, images };
   }
 
   create(data: CreatePropertyData): Promise<Propiedad> {
@@ -36,18 +61,48 @@ class PropertyService {
       throw new Error("La superficie total debe ser mayor a 0");
     }
 
-  return propertyRepository.create({
-    ...data,
-    type: data.type as PropertyType,
-    operation: data.operation as OperationType,
-    coveredAreaM2: data.coveredAreaM2 ?? null,
-    rooms: data.rooms ?? null,
-    bedrooms: data.bedrooms ?? null,
-    bathrooms: data.bathrooms ?? null,
-    ageYears: data.ageYears ?? null,
-    tags: data.tags ?? [],
-    status: data.status ?? PropertyStatus.DRAFT,
-  });
+    return propertyRepository.create({
+      ...data,
+      type: data.type as PropertyType,
+      operation: data.operation as OperationType,
+      coveredAreaM2: data.coveredAreaM2 ?? null,
+      rooms: data.rooms ?? null,
+      bedrooms: data.bedrooms ?? null,
+      bathrooms: data.bathrooms ?? null,
+      ageYears: data.ageYears ?? null,
+      tags: data.tags ?? [],
+      status: data.status ?? PropertyStatus.DRAFT,
+    });
+  }
+
+  async update(id: number, data: Partial<CreatePropertyData>): Promise<Propiedad> {
+    const property = await propertyRepository.findById(id);
+
+    if (!property) {
+      throw new Error("Property not found");
+    }
+
+    if (
+      property.status === PropertyStatus.SOLD ||
+      property.status === PropertyStatus.RENTED ||
+      property.status === PropertyStatus.CANCELLED
+    ) {
+      throw new Error("No se puede editar una propiedad Vendida, Alquilada o Cancelada");
+    }
+
+    if (data.price !== undefined && Number(data.price) <= 0) {
+      throw new Error("El precio debe ser mayor a 0");
+    }
+
+    if (data.totalAreaM2 !== undefined && Number(data.totalAreaM2) <= 0) {
+      throw new Error("La superficie total debe ser mayor a 0");
+    }
+
+    return propertyRepository.update(id, data);
+  }
+
+  findAll(filters: PropertyFilters): Promise<Propiedad[]> {
+    return propertyRepository.findAll(filters);
   }
 }
 
