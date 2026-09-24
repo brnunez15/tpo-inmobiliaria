@@ -10,7 +10,7 @@ describe("Property Integration Tests", () => {
     if (!AppDataSource.isInitialized) {
       await AppDataSource.initialize();
     }
-    
+
     // create a user to get a token
     const res = await request(app).post("/auth/register").send({
       fullName: "Prop Tester",
