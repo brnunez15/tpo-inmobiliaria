@@ -1,5 +1,7 @@
 import { propertyRepository } from "../repositories/property.repository";
+import { galeriaImagenRepository } from "../repositories/galeria-imagen.repository";
 import { Propiedad } from "../entities/propiedad";
+import { GaleriaImagen } from "../entities/galeria-imagenes";
 import { PropertyType, OperationType, PropertyStatus } from "../entities/enums";
 
 interface CreatePropertyData {
@@ -35,9 +37,19 @@ interface PropertyFilters {
   order?: string;
 }
 
+type PropertyWithGallery = Propiedad & { images: GaleriaImagen[] };
+
 class PropertyService {
-  getById(id: number): Promise<Propiedad | null> {
-    return propertyRepository.findById(id);
+  async getById(id: number): Promise<PropertyWithGallery | null> {
+    const property = await propertyRepository.findById(id);
+
+    if (!property) {
+      return null;
+    }
+
+    const images = await galeriaImagenRepository.findByPropertyId(id);
+
+    return { ...property, images };
   }
 
   create(data: CreatePropertyData): Promise<Propiedad> {

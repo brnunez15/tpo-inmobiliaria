@@ -7,9 +7,9 @@ class PropertyRepository {
     return AppDataSource.getRepository(Propiedad);
   }
 
-  findById(id: number): Promise<Propiedad | null> {
-    return this.repository.findOneBy({ id });
-  }
+ findById(id: number): Promise<Propiedad | null> {
+  return this.repository.findOne({ where: { id }, relations: ["agency"] });
+}
 
   create(
     data: Omit<Propiedad, "id" | "createdAt" | "updatedAt" | "agency">
