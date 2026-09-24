@@ -104,6 +104,24 @@ class ServicioPropiedad {
   ): Promise<{ datos: Propiedad[]; total: number }> {
     return repositorioPropiedad.buscarTodos(filtros, paginacion);
   }
+
+  getById(id: number) {
+    return this.obtenerPorId(id);
+  }
+
+  create(datos: DatosCrearPropiedad) {
+    return this.crear(datos);
+  }
+
+  update(id: number, datos: Partial<DatosCrearPropiedad>) {
+    return this.actualizar(id, datos);
+  }
+
+  async findAll(filtros: FiltrosPropiedades, paginacion: { page: number; limit: number }) {
+    const res = await this.buscarTodos(filtros, { pagina: paginacion.page, limite: paginacion.limit });
+    return { data: res.datos, total: res.total };
+  }
 }
 
 export const servicioPropiedad = new ServicioPropiedad();
+export const propertyService = servicioPropiedad;

@@ -10,6 +10,12 @@ export class ErrorEmailDuplicado extends Error {}
 export class ErrorNombreInmobiliariaDuplicado extends Error {}
 export class ErrorCredencialesInvalidas extends Error {}
 
+export {
+  ErrorEmailDuplicado as EmailAlreadyExistsError,
+  ErrorNombreInmobiliariaDuplicado as AgencyNameAlreadyExistsError,
+  ErrorCredencialesInvalidas as InvalidCredentialsError,
+};
+
 interface DatosRegistro {
   email: string;
   password: string;
@@ -77,6 +83,35 @@ class ServicioAuth {
     });
     return { token };
   }
+
+  register(datos: {
+    email: string;
+    password: string;
+    fullName: string;
+    agencyName: string;
+    contactPhone: string;
+    contactEmail: string;
+    description: string;
+    officeAddress?: string | null;
+    logoUrl?: string | null;
+  }) {
+    return this.registrar({
+      email: datos.email,
+      password: datos.password,
+      fullName: datos.fullName,
+      nombreInmobiliaria: datos.agencyName,
+      descripcion: datos.description,
+      telefonoContacto: datos.contactPhone,
+      emailContacto: datos.contactEmail,
+      direccionOficina: datos.officeAddress,
+      logoUrl: datos.logoUrl,
+    });
+  }
+
+  login(email: string, password: string) {
+    return this.iniciarSesion(email, password);
+  }
 }
 
 export const servicioAuth = new ServicioAuth();
+export const authService = servicioAuth;

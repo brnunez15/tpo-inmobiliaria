@@ -6,6 +6,12 @@ export class ErrorInmobiliariaNoEncontrada extends Error {}
 export class ErrorSinPermiso extends Error {}
 export class ErrorInmobiliariaConPropiedadesActivas extends Error {}
 
+export {
+  ErrorInmobiliariaNoEncontrada as AgencyNotFoundError,
+  ErrorSinPermiso as AgencyForbiddenError,
+  ErrorInmobiliariaConPropiedadesActivas as AgencyHasActivePropertiesError,
+};
+
 interface DatosActualizarInmobiliaria {
   name?: string;
   description?: string;
@@ -49,6 +55,22 @@ class ServicioInmobiliaria {
     return repositorioInmobiliaria.buscarPublicadasPorInmobiliariaId(id);
   }
 
+  getPublicProfile(id: number) {
+    return this.obtenerPerfil(id);
+  }
+
+  update(id: number, vendedorId: number, datos: DatosActualizarInmobiliaria) {
+    return this.actualizar(id, vendedorId, datos);
+  }
+
+  delete(id: number, vendedorId: number) {
+    return this.eliminar(id, vendedorId);
+  }
+
+  getProperties(id: number) {
+    return this.obtenerPropiedades(id);
+  }
+
   private aPerfilPublico(inmobiliaria: Inmobiliaria) {
     return {
       id: inmobiliaria.id,
@@ -64,3 +86,4 @@ class ServicioInmobiliaria {
 }
 
 export const servicioInmobiliaria = new ServicioInmobiliaria();
+export const agencyService = servicioInmobiliaria;

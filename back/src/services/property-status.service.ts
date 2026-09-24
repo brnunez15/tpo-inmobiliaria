@@ -6,6 +6,12 @@ export class ErrorTransicionEstadoInvalida extends Error {}
 export class ErrorPropiedadNoEncontrada extends Error {}
 export class ErrorSinPermiso extends Error {}
 
+export {
+  ErrorTransicionEstadoInvalida as PropertyStatusInvalidTransitionError,
+  ErrorPropiedadNoEncontrada as PropertyNotFoundError,
+  ErrorSinPermiso as PropertyForbiddenError,
+};
+
 /**
  * Transiciones de estado permitidas.
  * Cancelada es posible desde cualquier estado activo (no terminal).
@@ -53,6 +59,16 @@ class ServicioEstadoPropiedad {
     if (!propiedad) throw new ErrorPropiedadNoEncontrada();
     return repositorioHistorialEstado.buscarPorPropiedadId(propiedadId);
   }
+
+  changeStatus(propiedadId: number, vendedorId: number, nuevoEstado: PropertyStatus) {
+    return this.cambiarEstado(propiedadId, vendedorId, nuevoEstado);
+  }
+
+  getHistory(propiedadId: number) {
+    return this.obtenerHistorial(propiedadId);
+  }
 }
 
 export const servicioEstadoPropiedad = new ServicioEstadoPropiedad();
+export const propertyStatusService = servicioEstadoPropiedad;
+

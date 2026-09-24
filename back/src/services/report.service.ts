@@ -2,8 +2,7 @@ import { AppDataSource } from "../config/data-source";
 import { Propiedad } from "../entities/propiedad";
 import { HistorialEstadoPropiedad } from "../entities/historial-estado-propiedad";
 import { PropertyStatus } from "../entities/enums";
-import { agencyRepository } from "../repositories/inmobiliaria.repositorio";
-import { propertyStatusHistoryRepository } from "../repositories/property-status-history.repository";
+import { repositorioInmobiliaria } from "../repositories/inmobiliaria.repositorio";
 
 export class AgencyNotFoundError extends Error {}
 export class ReportForbiddenError extends Error {}
@@ -11,7 +10,7 @@ export class ReportForbiddenError extends Error {}
 class ReportService {
   /** Cantidad de propiedades por estado actual. */
   async statusSummary(agencyId: number, sellerId: number) {
-    const agency = await agencyRepository.findById(agencyId);
+    const agency = await repositorioInmobiliaria.buscarPorId(agencyId);
     if (!agency) throw new AgencyNotFoundError();
     if (agency.seller.id !== sellerId) throw new ReportForbiddenError();
 
@@ -29,7 +28,7 @@ class ReportService {
 
   /** Publicaciones nuevas y ventas/alquileres concretados por mes. */
   async monthly(agencyId: number, sellerId: number) {
-    const agency = await agencyRepository.findById(agencyId);
+    const agency = await repositorioInmobiliaria.buscarPorId(agencyId);
     if (!agency) throw new AgencyNotFoundError();
     if (agency.seller.id !== sellerId) throw new ReportForbiddenError();
 
@@ -76,7 +75,7 @@ class ReportService {
 
   /** Días promedio entre Publicada y Vendida/Alquilada. */
   async avgTimeOnMarket(agencyId: number, sellerId: number) {
-    const agency = await agencyRepository.findById(agencyId);
+    const agency = await repositorioInmobiliaria.buscarPorId(agencyId);
     if (!agency) throw new AgencyNotFoundError();
     if (agency.seller.id !== sellerId) throw new ReportForbiddenError();
 

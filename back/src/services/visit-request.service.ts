@@ -10,6 +10,14 @@ export class ErrorTransicionVisitaInvalida extends Error {}
 export class ErrorPropiedadNoEncontrada extends Error {}
 export class ErrorInmobiliariaNoEncontrada extends Error {}
 
+export {
+  ErrorVisitaNoEncontrada as VisitRequestNotFoundError,
+  ErrorSinPermiso as VisitRequestForbiddenError,
+  ErrorTransicionVisitaInvalida as VisitRequestInvalidTransitionError,
+  ErrorPropiedadNoEncontrada as PropertyNotFoundError,
+  ErrorInmobiliariaNoEncontrada as AgencyNotFoundError,
+};
+
 const TRANSICIONES_PERMITIDAS: Record<VisitRequestStatus, VisitRequestStatus[]> = {
   [VisitRequestStatus.PENDING]:   [VisitRequestStatus.CONFIRMED, VisitRequestStatus.REJECTED, VisitRequestStatus.CANCELLED],
   [VisitRequestStatus.CONFIRMED]: [VisitRequestStatus.COMPLETED, VisitRequestStatus.CANCELLED, VisitRequestStatus.REJECTED],
@@ -68,6 +76,33 @@ class ServicioSolicitudVisita {
 
     return repositorioSolicitudVisita.buscarPorInmobiliariaId(inmobiliariaId);
   }
+
+  create(
+    propiedadId: number,
+    datos: {
+      requesterName: string;
+      requesterPhone: string;
+      proposedDate: Date;
+      message?: string | null;
+    }
+  ) {
+    return this.crear(propiedadId, {
+      nombreSolicitante: datos.requesterName,
+      telefonoSolicitante: datos.requesterPhone,
+      fechaPropuesta: datos.proposedDate,
+      mensaje: datos.message,
+    });
+  }
+
+  changeStatus(visitaId: number, vendedorId: number, nuevoEstado: VisitRequestStatus) {
+    return this.cambiarEstado(visitaId, vendedorId, nuevoEstado);
+  }
+
+  listByAgency(inmobiliariaId: number, vendedorId: number) {
+    return this.listarPorInmobiliaria(inmobiliariaId, vendedorId);
+  }
 }
 
 export const servicioSolicitudVisita = new ServicioSolicitudVisita();
+export const visitRequestService = servicioSolicitudVisita;
+

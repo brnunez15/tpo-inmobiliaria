@@ -80,6 +80,24 @@ class RepositorioActividad {
     actividad.read = true;
     return this.repositorio.save(actividad);
   }
+
+  findById(id: number) {
+    return this.buscarPorId(id);
+  }
+
+  findByAgencyId(agencyId: number) {
+    return this.buscarPorInmobiliariaId(agencyId);
+  }
+
+  countUnreadByAgencyId(agencyId: number) {
+    return this.contarNoLeidasPorInmobiliariaId(agencyId);
+  }
+
+  markAsRead(actividad: Actividad) {
+    return this.marcarLeida(actividad);
+  }
 }
 
 export const repositorioActividad = new RepositorioActividad();
+export const activityRepository = repositorioActividad;
+

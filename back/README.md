@@ -10,7 +10,12 @@ npm install
 cp .env.example .env
 npm run dev
 npm run build
+npm run seed  # Seed the database with mock data
+npm run test  # Run integration tests
 ```
+
+## API Collection
+A Postman/ThunderClient collection is available at `collection.json` in the root of the backend folder. You can import it to test the endpoints.
 
 Las tablas deben crearse mediante migraciones. `synchronize` queda desactivado
 por diseño.

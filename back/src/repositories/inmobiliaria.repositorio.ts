@@ -49,6 +49,11 @@ class RepositorioInmobiliaria {
       ],
     });
   }
+
+  findById(id: number): Promise<Inmobiliaria | null> {
+    return this.buscarPorId(id);
+  }
 }
 
 export const repositorioInmobiliaria = new RepositorioInmobiliaria();
+export const agencyRepository = repositorioInmobiliaria;

@@ -41,3 +41,5 @@ class RepositorioHistorialEstado {
 }
 
 export const repositorioHistorialEstado = new RepositorioHistorialEstado();
+export const propertyStatusHistoryRepository = repositorioHistorialEstado;
+

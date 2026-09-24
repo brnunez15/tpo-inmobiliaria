@@ -6,6 +6,12 @@ export class ErrorComentarioNoEncontrado extends Error {}
 export class ErrorSinPermiso extends Error {}
 export class ErrorPropiedadNoEncontrada extends Error {}
 
+export {
+  ErrorComentarioNoEncontrado as CommentNotFoundError,
+  ErrorSinPermiso as CommentForbiddenError,
+  ErrorPropiedadNoEncontrada as PropertyNotFoundError,
+};
+
 class ServicioComentario {
   async crear(propiedadId: number, nombreAutor: string, contenido: string) {
     const propiedad = await repositorioPropiedad.buscarPorId(propiedadId);
@@ -39,6 +45,20 @@ class ServicioComentario {
     if (!propiedad) throw new ErrorPropiedadNoEncontrada();
     return repositorioComentario.buscarPorPropiedadId(propiedadId);
   }
+
+  create(propiedadId: number, authorName: string, content: string) {
+    return this.crear(propiedadId, authorName, content);
+  }
+
+  reply(comentarioId: number, vendedorId: number, reply: string) {
+    return this.responder(comentarioId, vendedorId, reply);
+  }
+
+  listByProperty(propiedadId: number) {
+    return this.listarPorPropiedad(propiedadId);
+  }
 }
 
 export const servicioComentario = new ServicioComentario();
+export const commentService = servicioComentario;
+

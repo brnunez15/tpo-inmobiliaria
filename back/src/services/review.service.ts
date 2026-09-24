@@ -4,6 +4,8 @@ import { repositorioActividad } from "../repositories/activity.repository";
 
 export class ErrorInmobiliariaNoEncontrada extends Error {}
 
+export { ErrorInmobiliariaNoEncontrada as AgencyNotFoundError };
+
 class ServicioReseña {
   async crear(
     inmobiliariaId: number,
@@ -24,6 +26,23 @@ class ServicioReseña {
     if (!inmobiliaria) throw new ErrorInmobiliariaNoEncontrada();
     return repositorioReseña.buscarPorInmobiliariaId(inmobiliariaId);
   }
+
+  create(
+    inmobiliariaId: number,
+    datos: { authorName: string; content: string; rating: number }
+  ) {
+    return this.crear(inmobiliariaId, {
+      nombreAutor: datos.authorName,
+      contenido: datos.content,
+      calificacion: datos.rating,
+    });
+  }
+
+  listByAgency(inmobiliariaId: number) {
+    return this.listarPorInmobiliaria(inmobiliariaId);
+  }
 }
 
 export const servicioReseña = new ServicioReseña();
+export const reviewService = servicioReseña;
+
