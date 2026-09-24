@@ -2,18 +2,19 @@ import { Repository } from "typeorm";
 import { AppDataSource } from "../config/data-source";
 import { Vendedor } from "../entities/vendedor";
 
-class SellerRepository {
-  private get repository(): Repository<Vendedor> {
+class RepositorioVendedor {
+  private get repositorio(): Repository<Vendedor> {
     return AppDataSource.getRepository(Vendedor);
   }
 
-  findByEmail(email: string): Promise<Vendedor | null> {
-    return this.repository.findOneBy({ email });
+  buscarPorEmail(email: string): Promise<Vendedor | null> {
+    return this.repositorio.findOneBy({ email });
   }
 
-  findById(id: number): Promise<Vendedor | null> {
-    return this.repository.findOneBy({ id });
+  crear(datos: { email: string; passwordHash: string; fullName: string }): Promise<Vendedor> {
+    const vendedor = this.repositorio.create(datos);
+    return this.repositorio.save(vendedor);
   }
 }
 
-export const sellerRepository = new SellerRepository();
+export const repositorioVendedor = new RepositorioVendedor();

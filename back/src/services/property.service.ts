@@ -1,10 +1,11 @@
-import { propertyRepository } from "../repositories/property.repository";
-import { galeriaImagenRepository } from "../repositories/galeria-imagen.repository";
+import { repositorioPropiedad } from "../repositories/property.repository";
+import { repositorioGaleriaImagen } from "../repositories/galeria-imagen.repository";
+import { repositorioSolicitudVisita } from "../repositories/visit-request.repository";
 import { Propiedad } from "../entities/propiedad";
 import { GaleriaImagen } from "../entities/galeria-imagenes";
 import { PropertyType, OperationType, PropertyStatus } from "../entities/enums";
 
-interface CreatePropertyData {
+interface DatosCrearPropiedad {
   title: string;
   description: string;
   type: "HOUSE" | "APARTMENT" | "LAND" | "COMMERCIAL";
@@ -24,7 +25,7 @@ interface CreatePropertyData {
   agency: { id: number };
 }
 
-interface PropertyFilters {
+interface FiltrosPropiedades {
   type?: string;
   operation?: string;
   minPrice?: string;
@@ -37,73 +38,72 @@ interface PropertyFilters {
   order?: string;
 }
 
-type PropertyWithGallery = Propiedad & { images: GaleriaImagen[] };
+type PropiedadConGaleria = Propiedad & { imagenes: GaleriaImagen[] };
 
-class PropertyService {
-  async getById(id: number): Promise<PropertyWithGallery | null> {
-    const property = await propertyRepository.findById(id);
+class ServicioPropiedad {
+  async obtenerPorId(id: number): Promise<PropiedadConGaleria | null> {
+    const propiedad = await repositorioPropiedad.buscarPorId(id);
+    if (!propiedad) return null;
 
-    if (!property) {
-      return null;
-    }
-
-    const images = await galeriaImagenRepository.findByPropertyId(id);
-
-    return { ...property, images };
+    const imagenes = await repositorioGaleriaImagen.buscarPorPropiedadId(id);
+    return { ...propiedad, imagenes };
   }
 
-  create(data: CreatePropertyData): Promise<Propiedad> {
-    if (Number(data.price) <= 0) {
+  crear(datos: DatosCrearPropiedad): Promise<Propiedad> {
+    if (Number(datos.price) <= 0) {
       throw new Error("El precio debe ser mayor a 0");
     }
-
-    if (Number(data.totalAreaM2) <= 0) {
+    if (Number(datos.totalAreaM2) <= 0) {
       throw new Error("La superficie total debe ser mayor a 0");
     }
 
-    return propertyRepository.create({
-      ...data,
-      type: data.type as PropertyType,
-      operation: data.operation as OperationType,
-      coveredAreaM2: data.coveredAreaM2 ?? null,
-      rooms: data.rooms ?? null,
-      bedrooms: data.bedrooms ?? null,
-      bathrooms: data.bathrooms ?? null,
-      ageYears: data.ageYears ?? null,
-      tags: data.tags ?? [],
-      status: data.status ?? PropertyStatus.DRAFT,
+    return repositorioPropiedad.crear({
+      ...datos,
+      type: datos.type as PropertyType,
+      operation: datos.operation as OperationType,
+      coveredAreaM2: datos.coveredAreaM2 ?? null,
+      rooms: datos.rooms ?? null,
+      bedrooms: datos.bedrooms ?? null,
+      bathrooms: datos.bathrooms ?? null,
+      ageYears: datos.ageYears ?? null,
+      tags: datos.tags ?? [],
+      status: datos.status ?? PropertyStatus.DRAFT,
     });
   }
 
-  async update(id: number, data: Partial<CreatePropertyData>): Promise<Propiedad> {
-    const property = await propertyRepository.findById(id);
-
-    if (!property) {
-      throw new Error("Property not found");
-    }
+  async actualizar(id: number, datos: Partial<DatosCrearPropiedad>): Promise<Propiedad> {
+    const propiedad = await repositorioPropiedad.buscarPorId(id);
+    if (!propiedad) throw new Error("Propiedad no encontrada");
 
     if (
-      property.status === PropertyStatus.SOLD ||
-      property.status === PropertyStatus.RENTED ||
-      property.status === PropertyStatus.CANCELLED
+      propiedad.status === PropertyStatus.SOLD ||
+      propiedad.status === PropertyStatus.RENTED ||
+      propiedad.status === PropertyStatus.CANCELLED
     ) {
       throw new Error("No se puede editar una propiedad Vendida, Alquilada o Cancelada");
     }
 
-    if (data.price !== undefined && Number(data.price) <= 0) {
-      throw new Error("El precio debe ser mayor a 0");
+    const tieneVisitaConfirmada = await repositorioSolicitudVisita.tieneConfirmadaPendiente(id);
+    if (tieneVisitaConfirmada) {
+      throw new Error("No se puede editar una propiedad con una visita Confirmada pendiente");
     }
 
-    if (data.totalAreaM2 !== undefined && Number(data.totalAreaM2) <= 0) {
+    if (datos.price !== undefined && Number(datos.price) <= 0) {
+      throw new Error("El precio debe ser mayor a 0");
+    }
+    if (datos.totalAreaM2 !== undefined && Number(datos.totalAreaM2) <= 0) {
       throw new Error("La superficie total debe ser mayor a 0");
     }
 
-    return propertyRepository.update(id, data);
+    return repositorioPropiedad.actualizar(id, datos);
   }
 
-  findAll(filters: PropertyFilters): Promise<Propiedad[]> {
-    return propertyRepository.findAll(filters);
+  buscarTodos(
+    filtros: FiltrosPropiedades,
+    paginacion: { pagina: number; limite: number }
+  ): Promise<{ datos: Propiedad[]; total: number }> {
+    return repositorioPropiedad.buscarTodos(filtros, paginacion);
   }
 }
 
-export const propertyService = new PropertyService();
+export const servicioPropiedad = new ServicioPropiedad();

@@ -2,17 +2,16 @@ import { Repository } from "typeorm";
 import { AppDataSource } from "../config/data-source";
 import { GaleriaImagen } from "../entities/galeria-imagenes";
 
-class GaleriaImagenRepository {
-  private get repository(): Repository<GaleriaImagen> {
+class RepositorioGaleriaImagen {
+  private get repositorio(): Repository<GaleriaImagen> {
     return AppDataSource.getRepository(GaleriaImagen);
   }
 
-  findByPropertyId(propertyId: number): Promise<GaleriaImagen[]> {
-    return this.repository.find({
-      where: { property: { id: propertyId } },
-      order: { position: "ASC" },
+  buscarPorPropiedadId(propiedadId: number): Promise<GaleriaImagen[]> {
+    return this.repositorio.find({
+      where: { property: { id: propiedadId } },
     });
   }
 }
 
-export const galeriaImagenRepository = new GaleriaImagenRepository();
+export const repositorioGaleriaImagen = new RepositorioGaleriaImagen();

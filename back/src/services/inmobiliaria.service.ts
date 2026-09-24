@@ -1,13 +1,12 @@
-import { agencyRepository } from "../repositories/inmobiliaria.repositorio";
+import { repositorioInmobiliaria } from "../repositories/inmobiliaria.repositorio";
 import { Inmobiliaria } from "../entities/inmobiliaria";
 import { Propiedad } from "../entities/propiedad";
 
-export class AgencyNotFoundError extends Error {}
-export class AgencyForbiddenError extends Error {}
-export class AgencyHasActivePropertiesError extends Error {}
+export class ErrorInmobiliariaNoEncontrada extends Error {}
+export class ErrorSinPermiso extends Error {}
+export class ErrorInmobiliariaConPropiedadesActivas extends Error {}
 
-/** Campos editables de una inmobiliaria. */
-interface UpdateAgencyData {
+interface DatosActualizarInmobiliaria {
   name?: string;
   description?: string;
   logoUrl?: string | null;
@@ -16,56 +15,52 @@ interface UpdateAgencyData {
   officeAddress?: string | null;
 }
 
-class AgencyService {
-  async getPublicProfile(id: number) {
-    const agency = await agencyRepository.findById(id);
-    if (!agency) throw new AgencyNotFoundError();
-
-    // Devolvemos sólo lo público, omitiendo cualquier referencia al vendedor
-    return this.toPublicDto(agency);
+class ServicioInmobiliaria {
+  async obtenerPerfil(id: number) {
+    const inmobiliaria = await repositorioInmobiliaria.buscarPorId(id);
+    if (!inmobiliaria) throw new ErrorInmobiliariaNoEncontrada();
+    return this.aPerfilPublico(inmobiliaria);
   }
 
-  async update(id: number, sellerId: number, data: UpdateAgencyData) {
-    const agency = await agencyRepository.findById(id);
-    if (!agency) throw new AgencyNotFoundError();
-    if (agency.seller.id !== sellerId) throw new AgencyForbiddenError();
+  async actualizar(id: number, vendedorId: number, datos: DatosActualizarInmobiliaria) {
+    const inmobiliaria = await repositorioInmobiliaria.buscarPorId(id);
+    if (!inmobiliaria) throw new ErrorInmobiliariaNoEncontrada();
+    if (inmobiliaria.seller.id !== vendedorId) throw new ErrorSinPermiso();
 
-    // Aplicar sólo los campos recibidos
-    Object.assign(agency, data);
-    const saved = await agencyRepository.save(agency);
-    return this.toPublicDto(saved);
+    Object.assign(inmobiliaria, datos);
+    const guardada = await repositorioInmobiliaria.guardar(inmobiliaria);
+    return this.aPerfilPublico(guardada);
   }
 
-  async delete(id: number, sellerId: number): Promise<void> {
-    const agency = await agencyRepository.findById(id);
-    if (!agency) throw new AgencyNotFoundError();
-    if (agency.seller.id !== sellerId) throw new AgencyForbiddenError();
+  async eliminar(id: number, vendedorId: number): Promise<void> {
+    const inmobiliaria = await repositorioInmobiliaria.buscarPorId(id);
+    if (!inmobiliaria) throw new ErrorInmobiliariaNoEncontrada();
+    if (inmobiliaria.seller.id !== vendedorId) throw new ErrorSinPermiso();
 
-    const activeCount = await agencyRepository.countActiveByAgencyId(id);
-    if (activeCount > 0) throw new AgencyHasActivePropertiesError();
+    const cantidadActivas = await repositorioInmobiliaria.contarActivasPorInmobiliariaId(id);
+    if (cantidadActivas > 0) throw new ErrorInmobiliariaConPropiedadesActivas();
 
-    await agencyRepository.delete(agency);
+    await repositorioInmobiliaria.eliminar(inmobiliaria);
   }
 
-  async getProperties(id: number): Promise<Propiedad[]> {
-    const agency = await agencyRepository.findById(id);
-    if (!agency) throw new AgencyNotFoundError();
-
-    return agencyRepository.findPublishedByAgencyId(id);
+  async obtenerPropiedades(id: number): Promise<Propiedad[]> {
+    const inmobiliaria = await repositorioInmobiliaria.buscarPorId(id);
+    if (!inmobiliaria) throw new ErrorInmobiliariaNoEncontrada();
+    return repositorioInmobiliaria.buscarPublicadasPorInmobiliariaId(id);
   }
 
-  private toPublicDto(agency: Inmobiliaria) {
+  private aPerfilPublico(inmobiliaria: Inmobiliaria) {
     return {
-      id: agency.id,
-      name: agency.name,
-      description: agency.description,
-      logo: agency.logoUrl,
-      contactPhone: agency.contactPhone,
-      contactEmail: agency.contactEmail,
-      officeAddress: agency.officeAddress,
-      createdAt: agency.createdAt,
+      id: inmobiliaria.id,
+      nombre: inmobiliaria.name,
+      descripcion: inmobiliaria.description,
+      logo: inmobiliaria.logoUrl,
+      telefonoContacto: inmobiliaria.contactPhone,
+      emailContacto: inmobiliaria.contactEmail,
+      direccionOficina: inmobiliaria.officeAddress,
+      creadaEn: inmobiliaria.createdAt,
     };
   }
 }
 
-export const agencyService = new AgencyService();
+export const servicioInmobiliaria = new ServicioInmobiliaria();

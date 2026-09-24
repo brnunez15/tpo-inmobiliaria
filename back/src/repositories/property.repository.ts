@@ -2,92 +2,99 @@ import { Repository } from "typeorm";
 import { AppDataSource } from "../config/data-source";
 import { Propiedad } from "../entities/propiedad";
 
-class PropertyRepository {
-  private get repository(): Repository<Propiedad> {
+class RepositorioPropiedad {
+  private get repositorio(): Repository<Propiedad> {
     return AppDataSource.getRepository(Propiedad);
   }
 
- findById(id: number): Promise<Propiedad | null> {
-  return this.repository.findOne({ where: { id }, relations: ["agency"] });
-}
+  buscarPorId(id: number): Promise<Propiedad | null> {
+    return this.repositorio.findOne({
+      where: { id },
+      relations: { agency: { seller: true } },
+    });
+  }
 
-  create(
-    data: Omit<Propiedad, "id" | "createdAt" | "updatedAt" | "agency">
+  crear(
+    datos: Omit<Propiedad, "id" | "createdAt" | "updatedAt" | "agency">
   ): Promise<Propiedad> {
-    const propiedad = this.repository.create(data);
-    return this.repository.save(propiedad);
+    const propiedad = this.repositorio.create(datos);
+    return this.repositorio.save(propiedad);
   }
 
-  async update(id: number, data: Record<string, unknown>): Promise<Propiedad> {
-    await this.repository.update(id, data as object);
-    return this.repository.findOneByOrFail({ id });
+  async actualizar(id: number, datos: Record<string, unknown>): Promise<Propiedad> {
+    await this.repositorio.update(id, datos as object);
+    return this.repositorio.findOneByOrFail({ id });
   }
 
-  async findAll(filters: {
-    type?: string;
-    operation?: string;
-    minPrice?: string;
-    maxPrice?: string;
-    area?: string;
-    rooms?: string;
-    tags?: string;
-    search?: string;
-    sortBy?: string;
-    order?: string;
-  }): Promise<Propiedad[]> {
-    let query = this.repository.createQueryBuilder("property");
+  async buscarTodos(
+    filtros: {
+      type?: string;
+      operation?: string;
+      minPrice?: string;
+      maxPrice?: string;
+      area?: string;
+      rooms?: string;
+      tags?: string;
+      search?: string;
+      sortBy?: string;
+      order?: string;
+    },
+    paginacion: { pagina: number; limite: number }
+  ): Promise<{ datos: Propiedad[]; total: number }> {
+    let consulta = this.repositorio.createQueryBuilder("propiedad");
 
-    if (filters.type) {
-      query = query.andWhere("property.type = :type", { type: filters.type });
+    if (filtros.type) {
+      consulta = consulta.andWhere("propiedad.type = :tipo", { tipo: filtros.type });
     }
-
-    if (filters.operation) {
-      query = query.andWhere("property.operation = :operation", { operation: filters.operation });
+    if (filtros.operation) {
+      consulta = consulta.andWhere("propiedad.operation = :operacion", { operacion: filtros.operation });
     }
-
-    if (filters.minPrice) {
-      query = query.andWhere("property.price >= :minPrice", { minPrice: filters.minPrice });
+    if (filtros.minPrice) {
+      consulta = consulta.andWhere("propiedad.price >= :precioMin", { precioMin: filtros.minPrice });
     }
-
-    if (filters.maxPrice) {
-      query = query.andWhere("property.price <= :maxPrice", { maxPrice: filters.maxPrice });
+    if (filtros.maxPrice) {
+      consulta = consulta.andWhere("propiedad.price <= :precioMax", { precioMax: filtros.maxPrice });
     }
-
-    if (filters.area) {
-      query = query.andWhere("property.area ILIKE :area", { area: `%${filters.area}%` });
+    if (filtros.area) {
+      consulta = consulta.andWhere("propiedad.area ILIKE :zona", { zona: `%${filtros.area}%` });
     }
-
-    if (filters.rooms) {
-      query = query.andWhere("property.rooms = :rooms", { rooms: filters.rooms });
+    if (filtros.rooms) {
+      consulta = consulta.andWhere("propiedad.rooms = :ambientes", { ambientes: filtros.rooms });
     }
-
-    if (filters.tags) {
-      const tagList = filters.tags.split(",").map((t) => t.trim());
-      for (const tag of tagList) {
-        query = query.andWhere("property.tags ILIKE :tag_" + tag, { [`tag_${tag}`]: `%${tag}%` });
+    if (filtros.tags) {
+      const listaTags = filtros.tags.split(",").map((t) => t.trim());
+      for (const tag of listaTags) {
+        consulta = consulta.andWhere("propiedad.tags ILIKE :tag_" + tag, {
+          [`tag_${tag}`]: `%${tag}%`,
+        });
       }
     }
-
-    if (filters.search) {
-      query = query.andWhere(
-        "(property.title ILIKE :search OR property.description ILIKE :search)",
-        { search: `%${filters.search}%` }
+    if (filtros.search) {
+      consulta = consulta.andWhere(
+        "(propiedad.title ILIKE :busqueda OR propiedad.description ILIKE :busqueda)",
+        { busqueda: `%${filtros.search}%` }
       );
     }
 
-    const sortableFields: Record<string, string> = {
-      price: "property.price",
-      createdAt: "property.createdAt",
-      totalAreaM2: "property.totalAreaM2",
+    const camposOrdenables: Record<string, string> = {
+      price: "propiedad.price",
+      createdAt: "propiedad.createdAt",
+      totalAreaM2: "propiedad.totalAreaM2",
     };
 
-    const sortField = sortableFields[filters.sortBy ?? "createdAt"] ?? "property.createdAt";
-    const sortOrder = filters.order === "asc" ? "ASC" : "DESC";
+    const campoOrden = camposOrdenables[filtros.sortBy ?? "createdAt"] ?? "propiedad.createdAt";
+    const direccionOrden = filtros.order === "asc" ? "ASC" : "DESC";
 
-    query = query.orderBy(sortField, sortOrder);
+    consulta = consulta.orderBy(campoOrden, direccionOrden);
 
-    return query.getMany();
+    const total = await consulta.getCount();
+    const datos = await consulta
+      .skip((paginacion.pagina - 1) * paginacion.limite)
+      .take(paginacion.limite)
+      .getMany();
+
+    return { datos, total };
   }
 }
 
-export const propertyRepository = new PropertyRepository();
+export const repositorioPropiedad = new RepositorioPropiedad();
