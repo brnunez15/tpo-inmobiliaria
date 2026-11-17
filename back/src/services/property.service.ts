@@ -1,5 +1,6 @@
 import { repositorioPropiedad } from "../repositories/property.repository";
 import { repositorioInmobiliaria } from "../repositories/inmobiliaria.repositorio";
+import { ErrorSinPermiso } from "./property-status.service";
 import { repositorioGaleriaImagen } from "../repositories/galeria-imagen.repository";
 import { repositorioSolicitudVisita } from "../repositories/visit-request.repository";
 import { Propiedad } from "../entities/propiedad";
@@ -79,9 +80,12 @@ class ServicioPropiedad {
     });
   }
 
-  async actualizar(id: number, datos: Partial<DatosCrearPropiedad>): Promise<Propiedad> {
+  async actualizar(id: number, vendedorId: number, datos: Partial<DatosCrearPropiedad>): Promise<Propiedad> {
     const propiedad = await repositorioPropiedad.buscarPorId(id);
     if (!propiedad) throw new ErrorPropiedadNoEncontrada("Propiedad no encontrada");
+    if (propiedad.agency.seller.id !== vendedorId) {
+      throw new ErrorSinPermiso("No tenés permiso para editar esta propiedad");
+    }
 
     if (
       propiedad.status === PropertyStatus.SOLD ||
@@ -121,8 +125,8 @@ class ServicioPropiedad {
     return this.crear(vendedorId, datos);
   }
 
-  update(id: number, datos: Partial<DatosCrearPropiedad>) {
-    return this.actualizar(id, datos);
+  update(id: number, vendedorId: number, datos: Partial<DatosCrearPropiedad>) {
+    return this.actualizar(id, vendedorId, datos);
   }
 
   async findAll(filtros: FiltrosPropiedades, paginacion: { page: number; limit: number }) {

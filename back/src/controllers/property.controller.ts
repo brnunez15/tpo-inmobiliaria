@@ -100,7 +100,7 @@ class PropertyController {
     }
     const { price, totalAreaM2, coveredAreaM2, ...rest } = parseResult.data;
     try {
-      const property = await propertyService.update(Number(id), {
+      const property = await propertyService.update(Number(id), request.sellerId!, {
         ...rest,
         ...(price !== undefined ? { price: String(price) } : {}),
         ...(totalAreaM2 !== undefined ? { totalAreaM2: String(totalAreaM2) } : {}),
@@ -108,6 +108,10 @@ class PropertyController {
       });
       response.json(property);
     } catch (error) {
+      if (error instanceof PropertyForbiddenError) {
+        response.status(403).json({ error: error.message });
+        return;
+      }
       const message = (error as Error).message;
       const status = error instanceof ErrorPropiedadNoEncontrada ? 404 : 400;
       response.status(status).json({ error: message });
