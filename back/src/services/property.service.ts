@@ -39,7 +39,22 @@ interface FiltrosPropiedades {
   order?: string;
 }
 
-type PropiedadConGaleria = Propiedad & { imagenes: GaleriaImagen[] };
+// Datos públicos de la inmobiliaria que se muestran en el detalle de una propiedad.
+// No incluye al vendedor: así nunca se devuelve su passwordHash (ni su email de login).
+interface InmobiliariaPublica {
+  id: number;
+  name: string;
+  description: string;
+  logoUrl: string | null;
+  contactPhone: string;
+  contactEmail: string;
+  officeAddress: string | null;
+}
+
+type PropiedadConGaleria = Omit<Propiedad, "agency"> & {
+  agency: InmobiliariaPublica;
+  imagenes: GaleriaImagen[];
+};
 
 class ServicioPropiedad {
   async obtenerPorId(id: number): Promise<PropiedadConGaleria | null> {
@@ -47,7 +62,25 @@ class ServicioPropiedad {
     if (!propiedad) return null;
 
     const imagenes = await repositorioGaleriaImagen.buscarPorPropiedadId(id);
-    return { ...propiedad, imagenes };
+
+    // Separamos la inmobiliaria del resto de los datos de la propiedad
+    const { agency, ...datosPropiedad } = propiedad;
+
+    // Armamos la respuesta a mano: la inmobiliaria va SIN el vendedor.
+    // Nunca se devuelve el passwordHash.
+    return {
+      ...datosPropiedad,
+      agency: {
+        id: agency.id,
+        name: agency.name,
+        description: agency.description,
+        logoUrl: agency.logoUrl,
+        contactPhone: agency.contactPhone,
+        contactEmail: agency.contactEmail,
+        officeAddress: agency.officeAddress,
+      },
+      imagenes,
+    };
   }
 
   crear(datos: DatosCrearPropiedad): Promise<Propiedad> {
