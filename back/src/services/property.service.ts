@@ -1,3 +1,4 @@
+export class ErrorPropiedadNoEncontrada extends Error {}
 import { repositorioPropiedad } from "../repositories/property.repository";
 import { repositorioGaleriaImagen } from "../repositories/galeria-imagen.repository";
 import { repositorioSolicitudVisita } from "../repositories/visit-request.repository";
@@ -73,7 +74,7 @@ class ServicioPropiedad {
 
   async actualizar(id: number, datos: Partial<DatosCrearPropiedad>): Promise<Propiedad> {
     const propiedad = await repositorioPropiedad.buscarPorId(id);
-    if (!propiedad) throw new Error("Propiedad no encontrada");
+    if (!propiedad) throw new ErrorPropiedadNoEncontrada("Propiedad no encontrada");
 
     if (
       propiedad.status === PropertyStatus.SOLD ||

@@ -1,6 +1,6 @@
 import type { Request, Response } from "express";
 import { z } from "zod";
-import { propertyService } from "../services/property.service";
+import { propertyService, ErrorPropiedadNoEncontrada } from "../services/property.service";
 import {
   propertyStatusService,
   PropertyStatusInvalidTransitionError,
@@ -107,7 +107,7 @@ class PropertyController {
       response.json(property);
     } catch (error) {
       const message = (error as Error).message;
-      const status = message === "Property not found" ? 404 : 400;
+      const status =error instanceof ErrorPropiedadNoEncontrada ? 404 : 400;
       response.status(status).json({ error: message });
     }
   }
