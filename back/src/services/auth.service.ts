@@ -16,6 +16,16 @@ export {
   ErrorCredencialesInvalidas as InvalidCredentialsError,
 };
 
+// Duración del token: 2 horas (lo pide el enunciado)
+const DURACION_TOKEN = "2h";
+
+// Lo que devuelven register y login
+interface RespuestaAuth {
+  token: string;
+  sellerId: number;
+  agencyId: number;
+}
+
 interface DatosRegistro {
   email: string;
   password: string;
@@ -29,7 +39,14 @@ interface DatosRegistro {
 }
 
 class ServicioAuth {
-  async registrar(datos: DatosRegistro): Promise<{ token: string }> {
+  // Un solo lugar donde se firma el token, así la duración no se repite
+  private generarToken(sellerId: number): string {
+    return jwt.sign({ sellerId }, process.env.JWT_SECRET!, {
+      expiresIn: DURACION_TOKEN,
+    });
+  }
+
+  async registrar(datos: DatosRegistro): Promise<RespuestaAuth> {
     // Verificar unicidad de email y nombre de inmobiliaria
     const vendedorExistente = await repositorioVendedor.buscarPorEmail(datos.email);
     if (vendedorExistente) throw new ErrorEmailDuplicado();
@@ -40,7 +57,7 @@ class ServicioAuth {
     const hashContrasena = await bcrypt.hash(datos.password, 10);
 
     // Crear Vendedor + Inmobiliaria en una transacción
-    const { vendedor } = await AppDataSource.transaction(async (manager) => {
+    const { vendedor, inmobiliaria } = await AppDataSource.transaction(async (manager) => {
       const repoVendedor = manager.getRepository(Vendedor);
       const repoInmobiliaria = manager.getRepository(Inmobiliaria);
 
@@ -62,26 +79,36 @@ class ServicioAuth {
       });
       await repoInmobiliaria.save(nuevaInmobiliaria);
 
-      return { vendedor: nuevoVendedor };
+      // Ahora devolvemos también la inmobiliaria para tener su id
+      return { vendedor: nuevoVendedor, inmobiliaria: nuevaInmobiliaria };
     });
 
-    const token = jwt.sign({ sellerId: vendedor.id }, process.env.JWT_SECRET!, {
-      expiresIn: "7d",
-    });
-    return { token };
+    return {
+      token: this.generarToken(vendedor.id),
+      sellerId: vendedor.id,
+      agencyId: inmobiliaria.id,
+    };
   }
 
-  async iniciarSesion(email: string, password: string): Promise<{ token: string }> {
+  async iniciarSesion(email: string, password: string): Promise<RespuestaAuth> {
     const vendedor = await repositorioVendedor.buscarPorEmail(email);
     if (!vendedor) throw new ErrorCredencialesInvalidas();
 
     const contrasenaValida = await bcrypt.compare(password, vendedor.passwordHash);
     if (!contrasenaValida) throw new ErrorCredencialesInvalidas();
 
-    const token = jwt.sign({ sellerId: vendedor.id }, process.env.JWT_SECRET!, {
-      expiresIn: "7d",
-    });
-    return { token };
+    // Buscamos la inmobiliaria del vendedor (relación 1:1)
+    const inmobiliaria = await repositorioInmobiliaria.buscarPorVendedorId(vendedor.id);
+    if (!inmobiliaria) {
+      // No debería pasar: el registro crea las dos cosas juntas en una transacción
+      throw new Error("El vendedor no tiene inmobiliaria asociada");
+    }
+
+    return {
+      token: this.generarToken(vendedor.id),
+      sellerId: vendedor.id,
+      agencyId: inmobiliaria.id,
+    };
   }
 
   register(datos: {
