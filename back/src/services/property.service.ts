@@ -1,10 +1,13 @@
-export class ErrorPropiedadNoEncontrada extends Error {}
 import { repositorioPropiedad } from "../repositories/property.repository";
+import { repositorioInmobiliaria } from "../repositories/inmobiliaria.repositorio";
 import { repositorioGaleriaImagen } from "../repositories/galeria-imagen.repository";
 import { repositorioSolicitudVisita } from "../repositories/visit-request.repository";
 import { Propiedad } from "../entities/propiedad";
 import { GaleriaImagen } from "../entities/galeria-imagenes";
 import { PropertyType, OperationType, PropertyStatus } from "../entities/enums";
+
+export class ErrorPropiedadNoEncontrada extends Error {}
+export class ErrorSinInmobiliaria extends Error {}
 
 interface DatosCrearPropiedad {
   title: string;
@@ -50,7 +53,7 @@ class ServicioPropiedad {
     return { ...propiedad, imagenes };
   }
 
-  crear(datos: DatosCrearPropiedad): Promise<Propiedad> {
+  async crear(vendedorId: number, datos: Omit<DatosCrearPropiedad, "agency">): Promise<Propiedad> {
     if (Number(datos.price) <= 0) {
       throw new Error("El precio debe ser mayor a 0");
     }
@@ -58,8 +61,12 @@ class ServicioPropiedad {
       throw new Error("La superficie total debe ser mayor a 0");
     }
 
+    const inmobiliaria = await repositorioInmobiliaria.buscarPorVendedorId(vendedorId);
+    if (!inmobiliaria) throw new ErrorSinInmobiliaria("Necesitás tener una inmobiliaria para publicar propiedades");
+
     return repositorioPropiedad.crear({
       ...datos,
+      agency: { id: inmobiliaria.id },
       type: datos.type as PropertyType,
       operation: datos.operation as OperationType,
       coveredAreaM2: datos.coveredAreaM2 ?? null,
@@ -110,8 +117,8 @@ class ServicioPropiedad {
     return this.obtenerPorId(id);
   }
 
-  create(datos: DatosCrearPropiedad) {
-    return this.crear(datos);
+  create(vendedorId: number, datos: Omit<DatosCrearPropiedad, "agency">) {
+    return this.crear(vendedorId, datos);
   }
 
   update(id: number, datos: Partial<DatosCrearPropiedad>) {

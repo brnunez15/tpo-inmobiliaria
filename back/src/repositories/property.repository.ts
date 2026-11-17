@@ -15,7 +15,7 @@ class RepositorioPropiedad {
   }
 
   crear(
-    datos: Omit<Propiedad, "id" | "createdAt" | "updatedAt" | "agency">
+    datos: Omit<Propiedad, "id" | "createdAt" | "updatedAt" | "agency"> & { agency: { id: number } }
   ): Promise<Propiedad> {
     const propiedad = this.repositorio.create(datos);
     return this.repositorio.save(propiedad);

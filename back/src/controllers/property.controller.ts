@@ -1,6 +1,6 @@
 import type { Request, Response } from "express";
 import { z } from "zod";
-import { propertyService, ErrorPropiedadNoEncontrada } from "../services/property.service";
+import { propertyService, ErrorPropiedadNoEncontrada, ErrorSinInmobiliaria } from "../services/property.service";
 import {
   propertyStatusService,
   PropertyStatusInvalidTransitionError,
@@ -33,7 +33,6 @@ const createPropertySchema = z.object({
   bathrooms: z.number().int().nullable().optional(),
   ageYears: z.number().int().nullable().optional(),
   tags: z.array(z.string()).optional(),
-  agencyId: z.number(),
 });
 
 const patchStatusSchema = z.object({
@@ -70,17 +69,20 @@ class PropertyController {
       response.status(400).json({ error: "Body inválido", details: parseResult.error.issues });
       return;
     }
-    const { agencyId, ...propertyData } = parseResult.data;
+    const propertyData = parseResult.data;
     try {
-      const property = await propertyService.create({
+      const property = await propertyService.create(request.sellerId!, {
         ...propertyData,
         price: String(propertyData.price),
         totalAreaM2: String(propertyData.totalAreaM2),
         coveredAreaM2: propertyData.coveredAreaM2 != null ? String(propertyData.coveredAreaM2) : null,
-        agency: { id: agencyId },
       });
       response.status(201).json(property);
     } catch (error) {
+      if (error instanceof ErrorSinInmobiliaria) {
+        response.status(403).json({ error: error.message });
+        return;
+      }
       response.status(400).json({ error: (error as Error).message });
     }
   }
@@ -96,7 +98,7 @@ class PropertyController {
       response.status(400).json({ error: "Body inválido", details: parseResult.error.issues });
       return;
     }
-    const { agencyId, price, totalAreaM2, coveredAreaM2, ...rest } = parseResult.data;
+    const { price, totalAreaM2, coveredAreaM2, ...rest } = parseResult.data;
     try {
       const property = await propertyService.update(Number(id), {
         ...rest,
@@ -107,7 +109,7 @@ class PropertyController {
       response.json(property);
     } catch (error) {
       const message = (error as Error).message;
-      const status =error instanceof ErrorPropiedadNoEncontrada ? 404 : 400;
+      const status = error instanceof ErrorPropiedadNoEncontrada ? 404 : 400;
       response.status(status).json({ error: message });
     }
   }
