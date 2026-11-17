@@ -45,6 +45,31 @@ interface FiltrosPropiedades {
 
 type PropiedadConGaleria = Propiedad & { imagenes: GaleriaImagen[] };
 
+// Un Terreno no tiene superficie cubierta, ambientes, dormitorios ni baños: se guardan en null.
+const CAMPOS_QUE_NO_APLICAN_A_TERRENO = {
+  coveredAreaM2: null,
+  rooms: null,
+  bedrooms: null,
+  bathrooms: null,
+};
+
+/** Reglas de superficie sobre los valores FINALES (los que va a tener la propiedad al guardarse). */
+function validarSuperficies(
+  tipo: string,
+  total: string | number,
+  cubierta: string | number | null | undefined
+): void {
+  if (!(Number(total) > 0)) throw new Error("La superficie total debe ser mayor a 0");
+
+  if (tipo === PropertyType.LAND) return; // al Terreno no le aplica la superficie cubierta
+  if (cubierta === null || cubierta === undefined) return; // la cubierta es opcional: se valida "cuando se informa"
+
+  if (!(Number(cubierta) > 0)) throw new Error("La superficie cubierta debe ser mayor a 0");
+  if (Number(cubierta) > Number(total)) {
+    throw new Error("La superficie cubierta no puede superar la superficie total");
+  }
+}
+
 class ServicioPropiedad {
   async obtenerPorId(id: number): Promise<PropiedadConGaleria | null> {
     const propiedad = await repositorioPropiedad.buscarPorId(id);
@@ -58,9 +83,7 @@ class ServicioPropiedad {
     if (Number(datos.price) <= 0) {
       throw new Error("El precio debe ser mayor a 0");
     }
-    if (Number(datos.totalAreaM2) <= 0) {
-      throw new Error("La superficie total debe ser mayor a 0");
-    }
+    validarSuperficies(datos.type, datos.totalAreaM2, datos.coveredAreaM2);
 
     const inmobiliaria = await repositorioInmobiliaria.buscarPorVendedorId(vendedorId);
     if (!inmobiliaria) throw new ErrorSinInmobiliaria("Necesitás tener una inmobiliaria para publicar propiedades");
@@ -77,6 +100,7 @@ class ServicioPropiedad {
       ageYears: datos.ageYears ?? null,
       tags: datos.tags ?? [],
       status: datos.status ?? PropertyStatus.DRAFT,
+      ...(datos.type === PropertyType.LAND ? CAMPOS_QUE_NO_APLICAN_A_TERRENO : {}),
     });
   }
 
@@ -103,11 +127,17 @@ class ServicioPropiedad {
     if (datos.price !== undefined && Number(datos.price) <= 0) {
       throw new Error("El precio debe ser mayor a 0");
     }
-    if (datos.totalAreaM2 !== undefined && Number(datos.totalAreaM2) <= 0) {
-      throw new Error("La superficie total debe ser mayor a 0");
-    }
 
-    return repositorioPropiedad.actualizar(id, datos);
+    // Valores finales = lo que ya tenía la propiedad + lo que se está cambiando
+    const tipoFinal = datos.type ?? propiedad.type;
+    const totalFinal = datos.totalAreaM2 ?? propiedad.totalAreaM2;
+    const cubiertaFinal = datos.coveredAreaM2 !== undefined ? datos.coveredAreaM2 : propiedad.coveredAreaM2;
+    validarSuperficies(tipoFinal, totalFinal, cubiertaFinal);
+
+    return repositorioPropiedad.actualizar(id, {
+      ...datos,
+      ...(tipoFinal === PropertyType.LAND ? CAMPOS_QUE_NO_APLICAN_A_TERRENO : {}),
+    });
   }
 
   buscarTodos(
