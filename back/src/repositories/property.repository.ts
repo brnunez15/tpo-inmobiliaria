@@ -1,6 +1,7 @@
 import { Repository } from "typeorm";
 import { AppDataSource } from "../config/data-source";
 import { Propiedad } from "../entities/propiedad";
+import { PropertyStatus } from "../entities/enums";
 
 class RepositorioPropiedad {
   private get repositorio(): Repository<Propiedad> {
@@ -38,10 +39,16 @@ class RepositorioPropiedad {
       search?: string;
       sortBy?: string;
       order?: string;
+      currency?: string;
     },
     paginacion: { pagina: number; limite: number }
   ): Promise<{ datos: Propiedad[]; total: number }> {
-    let consulta = this.repositorio.createQueryBuilder("propiedad");
+    // El listado es público (pantalla home del Interesado):
+    // solo se muestran las propiedades Publicadas, nunca Borradores, Pausadas,
+    // Canceladas, etc. Es el primer "where"; los filtros se suman con andWhere.
+    let consulta = this.repositorio
+      .createQueryBuilder("propiedad")
+      .where("propiedad.status = :estado", { estado: PropertyStatus.PUBLISHED });
 
     if (filtros.type) {
       consulta = consulta.andWhere("propiedad.type = :tipo", { tipo: filtros.type });
@@ -62,12 +69,22 @@ class RepositorioPropiedad {
       consulta = consulta.andWhere("propiedad.rooms = :ambientes", { ambientes: filtros.rooms });
     }
     if (filtros.tags) {
-      const listaTags = filtros.tags.split(",").map((t) => t.trim());
-      for (const tag of listaTags) {
-        consulta = consulta.andWhere("propiedad.tags ILIKE :tag_" + tag, {
-          [`tag_${tag}`]: `%${tag}%`,
+      // amenities=pileta,cochera → la propiedad tiene que tener TODAS
+      const listaTags = filtros.tags
+        .split(",")
+        .map((t) => t.trim())
+        .filter((t) => t !== "");
+      // El nombre del parámetro usa la posición (tag0, tag1, ...) y no el
+      // texto del tag: así un tag con espacios o guiones no rompe la consulta.
+      listaTags.forEach((tag, indice) => {
+        consulta = consulta.andWhere(`propiedad.tags ILIKE :tag${indice}`, {
+          [`tag${indice}`]: `%${tag}%`,
         });
-      }
+      });
+    }
+    if (filtros.currency) {
+      // Moneda: sin este filtro, precioMin/precioMax mezclaban pesos con dólares
+      consulta = consulta.andWhere("propiedad.currency = :moneda", { moneda: filtros.currency });
     }
     if (filtros.search) {
       consulta = consulta.andWhere(

@@ -41,6 +41,7 @@ interface FiltrosPropiedades {
   search?: string;
   sortBy?: string;
   order?: string;
+  currency?: string;
 }
 
 // Datos públicos de la inmobiliaria que se muestran en el detalle de una propiedad.
