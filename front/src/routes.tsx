@@ -17,12 +17,18 @@ import MiInmobiliaria from "./pages/panel/MiInmobiliaria";
 import MisPropiedades from "./pages/panel/MisPropiedades";
 import Reportes from "./pages/panel/Reportes";
 import Visitas from "./pages/panel/Visitas";
+import Login from "./pages/auth/Login";
+import Registro from "./pages/auth/Registro";
 
 export const rutas: RouteObject[] = [
     {
     element: <LayoutPublico />,
     children: [{ path: "/", element: <Listado /> }],
   },
+
+  { path: "/ingresar", element: <Login /> },
+  { path: "/registro", element: <Registro /> },
+  
   {
     element: <RequireAuth />,
     children: [
