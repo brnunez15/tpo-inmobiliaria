@@ -1,0 +1,226 @@
+.volver {
+  padding-left: 0;
+  display: inline-block;
+  margin-bottom: 0.75rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.encabezado {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.encabezado h1 {
+  margin-bottom: 0.25rem;
+}
+
+.direccion {
+  margin: 0;
+  color: var(--texto-suave);
+}
+
+.layout {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: minmax(0, 1fr) 20rem;
+  align-items: start;
+}
+
+.lateral {
+  position: sticky;
+  top: 4.5rem;
+  display: grid;
+  gap: 1rem;
+}
+
+.panel {
+  background: var(--superficie);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  padding: 1.1rem 1.25rem;
+  box-shadow: var(--sombra);
+}
+
+.precio {
+  font-size: 1.7rem;
+  font-weight: 800;
+  margin: 0 0 0.25rem;
+}
+
+.etiquetas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.datos {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  margin: 1rem 0;
+}
+
+.dato dt {
+  font-size: 0.8rem;
+  color: var(--texto-suave);
+}
+
+.dato dd {
+  margin: 0;
+  font-weight: 700;
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 1rem;
+}
+
+.tag {
+  font-size: 0.82rem;
+  padding: 0.15rem 0.65rem;
+  border-radius: 999px;
+  background: var(--primario-claro);
+  color: var(--primario-oscuro);
+}
+
+.descripcion {
+  white-space: pre-line;
+}
+
+.inmo {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.inmo img,
+.inmoLogo {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 10px;
+  object-fit: cover;
+  background: var(--primario-claro);
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  color: var(--primario-oscuro);
+}
+
+.inmo h3 {
+  margin: 0;
+}
+
+.contacto {
+  font-size: 0.92rem;
+  display: grid;
+  gap: 0.2rem;
+  margin: 0 0 0.75rem;
+}
+
+.galeria {
+  margin-bottom: 1.25rem;
+}
+
+.principal {
+  aspect-ratio: 16 / 10;
+  border-radius: var(--radio);
+  overflow: hidden;
+  background: linear-gradient(135deg, #dfe9e4, #efe9dc);
+}
+
+.principal img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.sinFoto {
+  display: grid;
+  place-items: center;
+  height: 100%;
+  color: var(--texto-suave);
+}
+
+.miniaturas {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  overflow-x: auto;
+  padding-bottom: 0.25rem;
+}
+
+.mini {
+  flex: 0 0 5.5rem;
+  aspect-ratio: 4 / 3;
+  padding: 0;
+  border: 3px solid transparent;
+  border-radius: 8px;
+  overflow: hidden;
+  background: none;
+  cursor: pointer;
+  opacity: 0.75;
+}
+
+.mini img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.miniActiva {
+  border-color: var(--primario);
+  opacity: 1;
+}
+
+.consultas {
+  margin-top: 1.5rem;
+}
+
+.consulta {
+  padding: 0.8rem 0;
+  border-bottom: 1px solid var(--borde);
+}
+
+.consulta:last-of-type {
+  border-bottom: none;
+}
+
+.autor {
+  font-weight: 700;
+}
+
+.respuesta {
+  margin: 0.5rem 0 0 1rem;
+  padding: 0.55rem 0.8rem;
+  border-left: 3px solid var(--primario);
+  background: var(--primario-claro);
+  border-radius: 0 8px 8px 0;
+  font-size: 0.95rem;
+}
+
+.formConsulta {
+  display: grid;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+@media (max-width: 860px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+
+  .lateral {
+    position: static;
+    order: -1;
+  }
+}

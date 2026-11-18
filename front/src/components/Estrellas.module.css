@@ -1,0 +1,30 @@
+.estrellas {
+  display: inline-flex;
+  gap: 0.05rem;
+  color: #d6d1c3;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+.llena {
+  color: #e0a31a;
+}
+
+.selector {
+  display: inline-flex;
+  gap: 0.15rem;
+}
+
+.boton {
+  border: none;
+  background: none;
+  padding: 0.1rem;
+  font-size: 1.7rem;
+  line-height: 1;
+  color: #d6d1c3;
+  cursor: pointer;
+}
+
+.boton.llena {
+  color: #e0a31a;
+}
