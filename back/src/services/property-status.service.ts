@@ -1,17 +1,10 @@
-<<<<<<< HEAD
-import { ErrorNoEncontrado, ErrorProhibido, ErrorReglaNegocio } from "../errors/dominio.errors";
-=======
 import { AppDataSource } from "../config/data-source";
->>>>>>> 64f931fd09898e245d74a29f6500f8148fa3b9d9
+import { ErrorNoEncontrado, ErrorProhibido, ErrorReglaNegocio } from "../errors/dominio.errors";
 import { repositorioPropiedad } from "../repositories/property.repository";
 import { repositorioActividad } from "../repositories/activity.repository";
 import { repositorioHistorialEstado } from "../repositories/property-status-history.repository";
-<<<<<<< HEAD
 import { repositorioGaleriaImagen } from "../repositories/galeria-imagen.repository";
-import { PropertyStatus } from "../entities/enums";
-=======
 import { PropertyStatus, OperationType } from "../entities/enums";
->>>>>>> 64f931fd09898e245d74a29f6500f8148fa3b9d9
 
 export class ErrorTransicionEstadoInvalida extends ErrorReglaNegocio {
   constructor(mensaje = "Transición de estado inválida") {
@@ -66,7 +59,6 @@ class ServicioEstadoPropiedad {
       );
     }
 
-<<<<<<< HEAD
     // Regla del enunciado: "Galería de fotos (mínimo una)". No se publica sin fotos.
     if (nuevoEstado === PropertyStatus.PUBLISHED) {
       const cantidadFotos = await repositorioGaleriaImagen.contarPorPropiedadId(propiedadId);
@@ -75,12 +67,6 @@ class ServicioEstadoPropiedad {
       }
     }
 
-    await repositorioHistorialEstado.crear({
-      propiedadId,
-      estadoAnterior: propiedad.status,
-      estadoNuevo: nuevoEstado,
-    });
-=======
     // Vendida solo para Venta y Alquilada solo para Alquiler
     if (nuevoEstado === PropertyStatus.SOLD && propiedad.operation !== OperationType.SALE) {
       throw new ErrorTransicionEstadoInvalida("Una propiedad en Alquiler no puede pasar a Vendida");
@@ -88,7 +74,6 @@ class ServicioEstadoPropiedad {
     if (nuevoEstado === PropertyStatus.RENTED && propiedad.operation !== OperationType.RENT) {
       throw new ErrorTransicionEstadoInvalida("Una propiedad en Venta no puede pasar a Alquilada");
     }
->>>>>>> 64f931fd09898e245d74a29f6500f8148fa3b9d9
 
     // Historial + cambio de estado + novedad para el feed: o se guardan los tres o ninguno
     await AppDataSource.transaction(async (manager) => {
@@ -119,8 +104,4 @@ class ServicioEstadoPropiedad {
 }
 
 export const servicioEstadoPropiedad = new ServicioEstadoPropiedad();
-<<<<<<< HEAD
 export const propertyStatusService = servicioEstadoPropiedad;
-=======
-export const propertyStatusService = servicioEstadoPropiedad;
->>>>>>> 64f931fd09898e245d74a29f6500f8148fa3b9d9
