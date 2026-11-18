@@ -1,9 +1,105 @@
-:root {
-  font-family: system-ui, sans-serif;
-  color: #202124;
-  background: #f7f5f0;
-}
+/* Estilos globales, como el estilos.css de las clases 13 a 15:
+   las clases comunes (botones, formularios, mensajes, listados) las usan
+   todas las pantallas. Lo propio de un componente va en su .module.css (Clase 15). */
+
+*, *::before, *::after { box-sizing: border-box; }
 
 body {
+  font-family: system-ui, sans-serif;
   margin: 0;
+  background: #f4f4f7;
+  color: #222;
+}
+
+/* ── Comunes ──────────────────────────────────────────────────── */
+
+.contenido { max-width: 1000px; margin: 0 auto; padding: 1.5rem 1.5rem 4rem; }
+
+.mensaje { padding: 2rem; text-align: center; color: #666; }
+.mensaje.error, .error { color: #c0392b; }
+.cargando { padding: 2rem; text-align: center; color: #666; }
+.aviso { padding: 0.5rem 0.75rem; border-radius: 6px; background: #eef9f0; color: #1e7b34; }
+
+.boton {
+  display: inline-block;
+  padding: 4px 10px;
+  border: 1px solid #bbb;
+  border-radius: 6px;
+  background: white;
+  color: inherit;
+  font-size: 0.9rem;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.boton:disabled { opacity: 0.5; cursor: default; }
+.boton.primario { border-color: #6272a4; background: #6272a4; color: white; }
+.boton.peligro { border-color: #c0392b; color: #c0392b; }
+
+.botones { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+
+.titulo-con-accion { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 1rem; }
+
+.alerta { color: #c0392b; font-weight: bold; }
+
+.chips { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 0.75rem; }
+
+.chip {
+  padding: 4px 12px;
+  border: none;
+  border-radius: 999px;
+  background: #e8e8ef;
+  color: #222;
+  font-size: 0.9rem;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.chip.activo { background: #6272a4; color: white; }
+
+/* ── Listados ─────────────────────────────────────────────────── */
+
+.fila {
+  display: grid;
+  grid-template-columns: 120px 1fr auto;
+  gap: 1rem;
+  align-items: center;
+  padding: 0.75rem;
+  margin-bottom: 0.75rem;
+  border-radius: 8px;
+  background: white;
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.08);
+}
+
+.fila img, .fila .sin-foto { width: 120px; height: 80px; object-fit: cover; border-radius: 6px; }
+.fila .sin-foto { display: grid; place-items: center; background: #e8e8ef; color: #777; font-size: 0.8rem; }
+.fila h2 { margin: 0 0 0.25rem; font-size: 1.05rem; }
+.fila p { margin: 0.15rem 0; color: #555; }
+
+.item {
+  padding: 0.6rem 0.9rem;
+  margin-bottom: 0.5rem;
+  border-left: 4px solid #bd93f9;
+  border-radius: 8px;
+  background: white;
+}
+
+.item p { margin: 0.15rem 0; }
+.item small { color: #777; }
+.item.respondida { border-left-color: #50fa7b; }
+.item.no-leida { border-left-color: #ff79c6; font-weight: 500; }
+
+/* ── Formularios (Clase 12) ───────────────────────────────────── */
+
+.formulario { display: flex; flex-direction: column; gap: 0.75rem; max-width: 640px; }
+.formulario label { display: flex; flex-direction: column; gap: 0.25rem; font-weight: 500; }
+.formulario input, .formulario select, .formulario textarea { padding: 6px 10px; font-size: 1rem; font-family: inherit; }
+.formulario .error { margin: -0.4rem 0 0; font-size: 0.9rem; }
+.fila-campos { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.75rem; }
+.checks { display: flex; flex-wrap: wrap; gap: 0.25rem 1rem; }
+.formulario .checks label { flex-direction: row; align-items: center; font-weight: normal; }
+
+@media (max-width: 600px) {
+  .fila { grid-template-columns: 1fr; }
+  .fila img, .fila .sin-foto { width: 100%; height: 160px; }
 }

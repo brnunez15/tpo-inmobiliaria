@@ -1,0 +1,43 @@
+/* Navegación del panel (Clase 15, LayoutPanel.module.css) */
+.nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.25rem;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  background: #282a36;
+}
+
+.marca { margin-right: auto; color: white; }
+
+.seccion {
+  padding: 0.25rem 0.25rem 0.4rem;
+  border-bottom: 3px solid transparent;
+  color: #f8f8f2;
+  text-decoration: none;
+}
+
+.seccion:hover { border-bottom-color: #6272a4; }
+
+/* Se compone con .seccion: solo cambia el color del borde y del texto */
+.actual { border-bottom-color: #50fa7b; color: #50fa7b; font-weight: bold; }
+
+.contador {
+  margin-left: 0.25rem;
+  padding: 0 7px;
+  border-radius: 999px;
+  background: #ff79c6;
+  color: #282a36;
+  font-size: 0.8rem;
+  font-weight: bold;
+}
+
+.salir { border: 1px solid #6272a4; border-radius: 6px; background: transparent; color: #f8f8f2; padding: 4px 10px; cursor: pointer; }
+
+/* Pantallas chicas: cada sección muestra solo su ícono (integrador Clase 15) */
+.texto { margin-left: 0.3rem; }
+
+@media (max-width: 600px) {
+  .texto { display: none; }
+  .nav { gap: 0.5rem 0.9rem; padding: 0.75rem 1rem; }
+}

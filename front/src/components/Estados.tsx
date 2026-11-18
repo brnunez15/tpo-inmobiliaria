@@ -1,17 +1,26 @@
 /**
  * src/components/Estados.tsx
  *
- * PARA QUÉ SIRVE: (escribilo con tus palabras cuando termines)
- *
- * A ESCRIBIR:
- *   [ ] 1. Cargando  (función)
- *         export function Cargando({ texto = "Cargando…" }: { texto?: string })
- *         → Estado de carga de un listado o pantalla.
- *   [ ] 2. ErrorCarga  (función)
- *         export function ErrorCarga({ error, onReintentar }: { error: ApiError; onReintentar?: () => void })
- *         → Error al cargar, con botón para reintentar.
- *   [ ] 3. Vacio  (función)
- *         export function Vacio(
- *         → Listado sin resultados.
+ * Los tres estados de cualquier pantalla que pide datos (Clase 14):
+ * cargando, error al cargar y listado vacío.
  */
-export {};
+export function Cargando({ texto = "Cargando…" }: { texto?: string }) {
+  return <p className="cargando">{texto}</p>;
+}
+
+export function ErrorCarga({ error, onReintentar }: { error: string; onReintentar?: () => void }) {
+  return (
+    <div className="mensaje error">
+      <p>{error}</p>
+      {onReintentar && (
+        <button type="button" className="boton" onClick={onReintentar}>
+          Reintentar
+        </button>
+      )}
+    </div>
+  );
+}
+
+export function Vacio({ texto }: { texto: string }) {
+  return <p className="mensaje">{texto}</p>;
+}

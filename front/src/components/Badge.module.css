@@ -1,0 +1,24 @@
+/* Una clase por estado: se elige con estilos[status] (Clase 15, BadgeEstado.module.css) */
+.badge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: #eee;
+  font-size: 0.8rem;
+  font-weight: bold;
+  white-space: nowrap;
+}
+
+/* Propiedad */
+.DRAFT { background: #ddd; color: #555; }
+.PUBLISHED { background: #50fa7b; }
+.PAUSED { background: #f1fa8c; }
+.RESERVED { background: #ffb86c; }
+.SOLD, .RENTED { background: #8be9fd; }
+.CANCELLED { background: #ff5555; color: white; }
+
+/* Solicitud de visita */
+.PENDING { background: #f1fa8c; }
+.CONFIRMED { background: #50fa7b; }
+.COMPLETED { background: #8be9fd; }
+.REJECTED { background: #ff5555; color: white; }

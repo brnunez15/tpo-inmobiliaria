@@ -1,14 +1,17 @@
 /**
  * src/components/Badge.tsx
  *
- * PARA QUÉ SIRVE: (escribilo con tus palabras cuando termines)
- *
- * A ESCRIBIR:
- *   [ ] 1. Badge  (función)
- *         export function Badge({ tono = "gris", children }: { tono?: Tono; children: string })
- *   [ ] 2. BadgeEstadoPropiedad  (función)
- *         export function BadgeEstadoPropiedad({ status }: { status: PropertyStatus })
- *   [ ] 3. BadgeEstadoVisita  (función)
- *         export function BadgeEstadoVisita({ status }: { status: VisitStatus })
+ * La "pastilla" de color con el estado, como BadgeEstado de la Clase 15:
+ * el color sale de una clase del CSS Module con el mismo nombre que el estado.
  */
-export {};
+import type { PropertyStatus, VisitStatus } from "../api/types";
+import { STATUS_LABELS, VISIT_STATUS_LABELS } from "../utils/labels";
+import estilos from "./Badge.module.css";
+
+export function BadgeEstadoPropiedad({ status }: { status: PropertyStatus }) {
+  return <span className={`${estilos.badge} ${estilos[status]}`}>{STATUS_LABELS[status]}</span>;
+}
+
+export function BadgeEstadoVisita({ status }: { status: VisitStatus }) {
+  return <span className={`${estilos.badge} ${estilos[status]}`}>{VISIT_STATUS_LABELS[status]}</span>;
+}

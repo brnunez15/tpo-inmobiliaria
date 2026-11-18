@@ -1,0 +1,28 @@
+/* (Clase 15, Reportes.module.css) El ancho y el color salen del style inline; la forma, de acá */
+.fila {
+  display: grid;
+  grid-template-columns: 110px 1fr 2.5rem;
+  gap: 0.75rem;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.barra {
+  height: 14px;
+  min-width: 2px;
+  border-radius: 999px;
+  background: var(--color-barra);
+  transition: width 0.4s;
+}
+
+.tarjeta { padding: 1rem; margin-bottom: 1rem; border-radius: 8px; background: white; }
+
+.numero { font-size: 2rem; font-weight: bold; }
+
+.meses { display: flex; gap: 1rem; align-items: flex-end; min-height: 140px; overflow-x: auto; }
+
+.mes { display: flex; flex-direction: column; align-items: center; gap: 0.25rem; font-size: 0.8rem; }
+
+.barras { display: flex; gap: 3px; align-items: flex-end; height: 100px; }
+
+.vertical { width: 14px; min-height: 2px; border-radius: 4px 4px 0 0; background: var(--color-barra); }

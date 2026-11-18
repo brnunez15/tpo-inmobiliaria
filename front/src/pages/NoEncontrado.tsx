@@ -1,7 +1,15 @@
 /**
+ * src/pages/NoEncontrado.tsx
  *
- * A ESCRIBIR:
- *   [ ] 1. NoEncontrado  (componente (export default))
- *         export default function NoEncontrado()
+ * La ruta "*" (Clase 13): cualquier URL que no coincide con otra ruta.
  */
-export {};
+import { Link } from "react-router";
+
+export default function NoEncontrado() {
+  return (
+    <div className="mensaje">
+      <h1>No encontramos esa página</h1>
+      <Link to="/">Volver al inicio</Link>
+    </div>
+  );
+}

@@ -1,0 +1,18 @@
+/* Una clase por estado: el borde de color se elige con estilos[v.status] (Clase 15, Solicitud.module.css) */
+.solicitud {
+  padding: 0.6rem 0.9rem;
+  margin-bottom: 0.5rem;
+  border-left: 4px solid transparent;
+  border-radius: 8px;
+  background: white;
+}
+
+.solicitud p { margin: 0.15rem 0; }
+.solicitud small { color: #777; }
+
+.PENDING { border-left-color: #f1fa8c; }
+.CONFIRMED { border-left-color: #50fa7b; }
+.COMPLETED { border-left-color: #8be9fd; }
+.REJECTED, .CANCELLED { border-left-color: #ff5555; opacity: 0.6; }
+
+.grupo { margin-top: 1.25rem; font-size: 1.05rem; }
