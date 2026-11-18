@@ -6,6 +6,7 @@ import { Propiedad } from "../entities/propiedad";
 import { repositorioPropiedad } from "../repositories/property.repository";
 import { repositorioComentario } from "../repositories/comment.repository";
 import { repositorioGaleriaImagen } from "../repositories/galeria-imagen.repository";
+import { repositorioReseña } from "../repositories/review.repository";
 
 export class ErrorInmobiliariaNoEncontrada extends ErrorNoEncontrado {
   constructor(mensaje = "Inmobiliaria no encontrada") {
@@ -166,19 +167,20 @@ class ServicioInmobiliaria {
     return this.obtenerPropiedades(id);
   }
 
-  private aPerfilPublico(inmobiliaria: Inmobiliaria) {
+  private async aPerfilPublico(inmobiliaria: Inmobiliaria) {
+    const rating = await repositorioReseña.resumenPorInmobiliariaId(inmobiliaria.id);
     return {
       id: inmobiliaria.id,
-      nombre: inmobiliaria.name,
-      descripcion: inmobiliaria.description,
-      logo: inmobiliaria.logoUrl,
-      telefonoContacto: inmobiliaria.contactPhone,
-      emailContacto: inmobiliaria.contactEmail,
-      direccionOficina: inmobiliaria.officeAddress,
-      creadaEn: inmobiliaria.createdAt,
+      name: inmobiliaria.name,
+      description: inmobiliaria.description,
+      logoUrl: inmobiliaria.logoUrl,
+      contactPhone: inmobiliaria.contactPhone,
+      contactEmail: inmobiliaria.contactEmail,
+      officeAddress: inmobiliaria.officeAddress,
+      createdAt: inmobiliaria.createdAt,
+      rating,
     };
   }
 }
-
 export const servicioInmobiliaria = new ServicioInmobiliaria();
 export const agencyService = servicioInmobiliaria;

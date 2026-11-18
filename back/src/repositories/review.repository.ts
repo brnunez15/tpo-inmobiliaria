@@ -14,6 +14,20 @@ class RepositorioReseña {
     });
   }
 
+  /** Promedio (con un decimal) y cantidad de reseñas de una inmobiliaria. */
+  async resumenPorInmobiliariaId(
+    inmobiliariaId: number
+  ): Promise<{ average: number | null; count: number }> {
+    const reseñas = await this.buscarPorInmobiliariaId(inmobiliariaId);
+    if (reseñas.length === 0) return { average: null, count: 0 };
+
+    const suma = reseñas.reduce((total, reseña) => total + Number(reseña.rating), 0);
+    return {
+      average: Math.round((suma / reseñas.length) * 10) / 10,
+      count: reseñas.length,
+    };
+  }
+
   crear(datos: {
     nombreAutor: string;
     contenido: string;
