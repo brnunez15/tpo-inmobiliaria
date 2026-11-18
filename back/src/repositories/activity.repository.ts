@@ -1,4 +1,5 @@
 import { Repository } from "typeorm";
+import type { EntityManager } from "typeorm";
 import { AppDataSource } from "../config/data-source";
 import { Actividad } from "../entities/actividad";
 import { ActivityType } from "../entities/enums";
@@ -63,6 +64,24 @@ class RepositorioActividad {
     return this.repositorio.save(actividad);
   }
 
+  crearPorCambioEstado(
+    inmobiliariaId: number,
+    propiedadId: number,
+    manager?: EntityManager
+  ): Promise<Actividad> {
+    const repo = manager ? manager.getRepository(Actividad) : this.repositorio;
+    const actividad = repo.create({
+      type: ActivityType.PROPERTY_STATUS_CHANGE,
+      read: false,
+      agency: { id: inmobiliariaId },
+      property: { id: propiedadId },
+      comment: null,
+      visitRequest: null,
+      review: null,
+    });
+    return repo.save(actividad);
+  }
+
   crearPorReseña(inmobiliariaId: number, reseñaId: number): Promise<Actividad> {
     const actividad = this.repositorio.create({
       type: ActivityType.REVIEW,
@@ -100,4 +119,3 @@ class RepositorioActividad {
 
 export const repositorioActividad = new RepositorioActividad();
 export const activityRepository = repositorioActividad;
-

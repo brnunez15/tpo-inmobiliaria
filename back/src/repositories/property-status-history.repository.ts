@@ -1,4 +1,5 @@
 import { Repository } from "typeorm";
+import type { EntityManager } from "typeorm";
 import { AppDataSource } from "../config/data-source";
 import { HistorialEstadoPropiedad } from "../entities/historial-estado-propiedad";
 import { PropertyStatus } from "../entities/enums";
@@ -8,17 +9,21 @@ class RepositorioHistorialEstado {
     return AppDataSource.getRepository(HistorialEstadoPropiedad);
   }
 
-  crear(datos: {
-    propiedadId: number;
-    estadoAnterior: PropertyStatus;
-    estadoNuevo: PropertyStatus;
-  }): Promise<HistorialEstadoPropiedad> {
-    const registro = this.repositorio.create({
+  crear(
+    datos: {
+      propiedadId: number;
+      estadoAnterior: PropertyStatus;
+      estadoNuevo: PropertyStatus;
+    },
+    manager?: EntityManager
+  ): Promise<HistorialEstadoPropiedad> {
+    const repo = manager ? manager.getRepository(HistorialEstadoPropiedad) : this.repositorio;
+    const registro = repo.create({
       fromStatus: datos.estadoAnterior,
       toStatus: datos.estadoNuevo,
       property: { id: datos.propiedadId },
     });
-    return this.repositorio.save(registro);
+    return repo.save(registro);
   }
 
   buscarPorPropiedadId(propiedadId: number): Promise<HistorialEstadoPropiedad[]> {
@@ -42,4 +47,3 @@ class RepositorioHistorialEstado {
 
 export const repositorioHistorialEstado = new RepositorioHistorialEstado();
 export const propertyStatusHistoryRepository = repositorioHistorialEstado;
-
