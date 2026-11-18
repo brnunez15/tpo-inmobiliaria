@@ -19,16 +19,23 @@ import Reportes from "./pages/panel/Reportes";
 import Visitas from "./pages/panel/Visitas";
 import Login from "./pages/auth/Login";
 import Registro from "./pages/auth/Registro";
+import Detalle from "./pages/publico/Detalle";
+import Sitio from "./pages/publico/Sitio";
 
 export const rutas: RouteObject[] = [
     {
     element: <LayoutPublico />,
-    children: [{ path: "/", element: <Listado /> }],
+    children: [
+      { path: "/", element: <Listado /> },
+      { path: "/propiedades/:id", element: <Detalle /> },
+      { path: "/inmobiliarias/:id", element: <Sitio /> },
+    ],
+    
   },
 
   { path: "/ingresar", element: <Login /> },
   { path: "/registro", element: <Registro /> },
-  
+
   {
     element: <RequireAuth />,
     children: [
@@ -39,7 +46,6 @@ export const rutas: RouteObject[] = [
           { index: true, element: <Navigate to="propiedades" replace /> },
           { path: "propiedades", element: <MisPropiedades /> },
           { path: "propiedades/nueva", element: <FormPropiedad /> },
-          // El mismo formulario, en modo edición (useParams trae el id)
           { path: "propiedades/:id/editar", element: <FormPropiedad /> },
           { path: "visitas", element: <Visitas /> },
           { path: "consultas", element: <Consultas /> },
