@@ -1,20 +1,19 @@
 import type { Request, Response } from "express";
 import { z } from "zod";
-import {
-  authService,
-  EmailAlreadyExistsError,
-  AgencyNameAlreadyExistsError,
-  InvalidCredentialsError,
-} from "../services/auth.service";
+import { authService } from "../services/auth.service";
+import { validar } from "./helpers";
 
 const registerSchema = z.object({
   fullName: z.string().trim().min(1),
   email: z.string().trim().email(),
   password: z.string().min(6),
+  phone: z.string().trim().max(40).nullable().optional(), // teléfono del vendedor (opcional)
   agencyName: z.string().trim().min(1),
   contactPhone: z.string().trim().min(1),
   contactEmail: z.string().trim().email(),
   description: z.string().trim().min(1),
+  officeAddress: z.string().trim().max(255).nullable().optional(), // opcional
+  logoUrl: z.string().url().max(500).nullable().optional(), // opcional
 });
 
 const loginSchema = z.object({
@@ -24,45 +23,21 @@ const loginSchema = z.object({
 
 class AuthController {
   async register(request: Request, response: Response): Promise<void> {
-    const parseResult = registerSchema.safeParse(request.body);
-    if (!parseResult.success) {
-      response.status(400).json({ error: "Datos inválidos", details: parseResult.error.issues });
-      return;
-    }
-
-    try {
-      const created = await authService.register(parseResult.data);
-      response.status(201).json(created);
-    } catch (error) {
-      if (error instanceof EmailAlreadyExistsError) {
-        response.status(409).json({ error: "El email ya está registrado" });
-        return;
-      }
-      if (error instanceof AgencyNameAlreadyExistsError) {
-        response.status(409).json({ error: "El nombre de fantasía ya existe" });
-        return;
-      }
-      throw error; // lo agarra el middleware de errores (tarea 11)
-    }
+    const datos = validar(registerSchema, request.body);
+    const created = await authService.register(datos);
+    response.status(201).json(created);
   }
 
   async login(request: Request, response: Response): Promise<void> {
-    const parseResult = loginSchema.safeParse(request.body);
-    if (!parseResult.success) {
-      response.status(400).json({ error: "Datos inválidos", details: parseResult.error.issues });
-      return;
-    }
+    const { email, password } = validar(loginSchema, request.body);
+    const result = await authService.login(email, password);
+    response.json(result);
+  }
 
-    try {
-      const result = await authService.login(parseResult.data.email, parseResult.data.password);
-      response.json(result);
-    } catch (error) {
-      if (error instanceof InvalidCredentialsError) {
-        response.status(401).json({ error: "Credenciales inválidas" });
-        return;
-      }
-      throw error;
-    }
+  // GET /auth/me — el front lo usa al recargar la página para saber quién está logueado
+  async me(request: Request, response: Response): Promise<void> {
+    const perfil = await authService.obtenerPerfil(request.sellerId!);
+    response.json(perfil);
   }
 }
 

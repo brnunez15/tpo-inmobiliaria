@@ -1,11 +1,20 @@
+import { ErrorNoEncontrado, ErrorProhibido } from "../errors/dominio.errors";
 import { AppDataSource } from "../config/data-source";
 import { Propiedad } from "../entities/propiedad";
 import { HistorialEstadoPropiedad } from "../entities/historial-estado-propiedad";
 import { PropertyStatus } from "../entities/enums";
 import { repositorioInmobiliaria } from "../repositories/inmobiliaria.repositorio";
 
-export class AgencyNotFoundError extends Error {}
-export class ReportForbiddenError extends Error {}
+export class AgencyNotFoundError extends ErrorNoEncontrado {
+  constructor(mensaje = "Inmobiliaria no encontrada") {
+    super(mensaje);
+  }
+}
+export class ReportForbiddenError extends ErrorProhibido {
+  constructor(mensaje = "No tenés permiso para ver los reportes de esta inmobiliaria") {
+    super(mensaje);
+  }
+}
 
 class ReportService {
   /** Cantidad de propiedades por estado actual. */

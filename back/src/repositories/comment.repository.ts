@@ -35,6 +35,35 @@ class RepositorioComentario {
     return this.repositorio.save(comentario);
   }
 
+  /** Consultas de todas las propiedades de una inmobiliaria (pantalla "Consultas" del vendedor). */
+  buscarPorInmobiliariaId(inmobiliariaId: number, soloSinResponder: boolean): Promise<Comentario[]> {
+    let consulta = this.repositorio
+      .createQueryBuilder("comentario")
+      .innerJoinAndSelect("comentario.property", "propiedad")
+      .where("propiedad.agency_id = :inmobiliariaId", { inmobiliariaId });
+
+    if (soloSinResponder) {
+      consulta = consulta.andWhere("comentario.response IS NULL");
+    }
+
+    return consulta.orderBy("comentario.createdAt", "DESC").getMany();
+  }
+
+  /** Cuántas consultas sin responder tiene cada propiedad de una inmobiliaria. */
+  contarSinResponderPorPropiedad(
+    inmobiliariaId: number
+  ): Promise<{ propiedadId: number; cantidad: string }[]> {
+    return this.repositorio
+      .createQueryBuilder("comentario")
+      .innerJoin("comentario.property", "propiedad")
+      .select("propiedad.id", "propiedadId")
+      .addSelect("COUNT(*)", "cantidad")
+      .where("propiedad.agency_id = :inmobiliariaId", { inmobiliariaId })
+      .andWhere("comentario.response IS NULL")
+      .groupBy("propiedad.id")
+      .getRawMany();
+  }
+
   async guardarRespuesta(comentario: Comentario, respuesta: string): Promise<Comentario> {
     comentario.response = respuesta;
     return this.repositorio.save(comentario);

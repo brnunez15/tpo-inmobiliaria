@@ -1,21 +1,13 @@
 import type { Request, Response } from "express";
 import { z } from "zod";
-import { propertyService, ErrorPropiedadNoEncontrada, ErrorSinInmobiliaria } from "../services/property.service";
-import {
-  propertyStatusService,
-  PropertyStatusInvalidTransitionError,
-  PropertyNotFoundError,
-  PropertyForbiddenError,
-} from "../services/property-status.service";
-import {
-  commentService,
-  CommentNotFoundError,
-  CommentForbiddenError,
-  PropertyNotFoundError as CommentPropertyNotFoundError,
-} from "../services/comment.service";
+import { propertyService, ErrorPropiedadNoEncontrada } from "../services/property.service";
+import { propertyStatusService } from "../services/property-status.service";
+import { commentService } from "../services/comment.service";
 import { PropertyStatus } from "../entities/enums";
+import { leerId, validar } from "./helpers";
 
-const ID_REGEX = /^\d+$/;
+// Los errores (404, 403, 400...) los lanza el service y los responde el
+// middleware de errores centralizado: acá no hace falta try/catch.
 
 const createPropertySchema = z.object({
   title: z.string().trim().min(1, "title is required").max(160),
@@ -44,78 +36,35 @@ const createCommentSchema = z.object({
   content: z.string().trim().min(1, "content is required").max(1000),
 });
 
-const replySchema = z.object({
-  reply: z.string().trim().min(1, "reply is required").max(1000),
-});
-
 class PropertyController {
   async getById(request: Request, response: Response): Promise<void> {
-    const { id } = request.params;
-    if (typeof id !== "string" || !ID_REGEX.test(id)) {
-      response.status(404).json({ message: "Propiedad no encontrada" });
-      return;
-    }
-    const property = await propertyService.getById(Number(id));
-    if (!property) {
-      response.status(404).json({ message: "Propiedad no encontrada" });
-      return;
-    }
+    const id = leerId(request, "Propiedad no encontrada");
+    const property = await propertyService.getById(id);
+    if (!property) throw new ErrorPropiedadNoEncontrada();
     response.json(property);
   }
 
   async create(request: Request, response: Response): Promise<void> {
-    const parseResult = createPropertySchema.safeParse(request.body);
-    if (!parseResult.success) {
-      response.status(400).json({ error: "Body inválido", details: parseResult.error.issues });
-      return;
-    }
-    const propertyData = parseResult.data;
-    try {
-      const property = await propertyService.create(request.sellerId!, {
-        ...propertyData,
-        price: String(propertyData.price),
-        totalAreaM2: String(propertyData.totalAreaM2),
-        coveredAreaM2: propertyData.coveredAreaM2 != null ? String(propertyData.coveredAreaM2) : null,
-      });
-      response.status(201).json(property);
-    } catch (error) {
-      if (error instanceof ErrorSinInmobiliaria) {
-        response.status(403).json({ error: error.message });
-        return;
-      }
-      response.status(400).json({ error: (error as Error).message });
-    }
+    const propertyData = validar(createPropertySchema, request.body);
+    const property = await propertyService.create(request.sellerId!, {
+      ...propertyData,
+      price: String(propertyData.price),
+      totalAreaM2: String(propertyData.totalAreaM2),
+      coveredAreaM2: propertyData.coveredAreaM2 != null ? String(propertyData.coveredAreaM2) : null,
+    });
+    response.status(201).json(property);
   }
 
   async update(request: Request, response: Response): Promise<void> {
-    const { id } = request.params;
-    if (typeof id !== "string" || !ID_REGEX.test(id)) {
-      response.status(404).json({ message: "Propiedad no encontrada" });
-      return;
-    }
-    const parseResult = createPropertySchema.partial().safeParse(request.body);
-    if (!parseResult.success) {
-      response.status(400).json({ error: "Body inválido", details: parseResult.error.issues });
-      return;
-    }
-    const { price, totalAreaM2, coveredAreaM2, ...rest } = parseResult.data;
-    try {
-      const property = await propertyService.update(Number(id), request.sellerId!, {
-        ...rest,
-        ...(price !== undefined ? { price: String(price) } : {}),
-        ...(totalAreaM2 !== undefined ? { totalAreaM2: String(totalAreaM2) } : {}),
-        ...(coveredAreaM2 !== undefined ? { coveredAreaM2: coveredAreaM2 != null ? String(coveredAreaM2) : null } : {}),
-      });
-      response.json(property);
-    } catch (error) {
-      if (error instanceof PropertyForbiddenError) {
-        response.status(403).json({ error: error.message });
-        return;
-      }
-      const message = (error as Error).message;
-      const status = error instanceof ErrorPropiedadNoEncontrada ? 404 : 400;
-      response.status(status).json({ error: message });
-    }
+    const id = leerId(request, "Propiedad no encontrada");
+    const { price, totalAreaM2, coveredAreaM2, ...rest } = validar(createPropertySchema.partial(), request.body);
+    const property = await propertyService.update(id, request.sellerId!, {
+      ...rest,
+      ...(price !== undefined ? { price: String(price) } : {}),
+      ...(totalAreaM2 !== undefined ? { totalAreaM2: String(totalAreaM2) } : {}),
+      ...(coveredAreaM2 !== undefined ? { coveredAreaM2: coveredAreaM2 != null ? String(coveredAreaM2) : null } : {}),
+    });
+    response.json(property);
   }
 
   async findAll(request: Request, response: Response): Promise<void> {
@@ -150,107 +99,31 @@ class PropertyController {
   // ── Tarea 6: Máquina de estados ──────────────────────────────────────────
 
   async patchStatus(request: Request, response: Response): Promise<void> {
-    const { id } = request.params;
-    if (typeof id !== "string" || !ID_REGEX.test(id)) {
-      response.status(404).json({ message: "Propiedad no encontrada" });
-      return;
-    }
-
-    const parseResult = patchStatusSchema.safeParse(request.body);
-    if (!parseResult.success) {
-      response.status(400).json({ error: "Body inválido", details: parseResult.error.issues });
-      return;
-    }
-
-    try {
-      const result = await propertyStatusService.changeStatus(
-        Number(id),
-        request.sellerId!,
-        parseResult.data.status
-      );
-      response.json(result);
-    } catch (error) {
-      if (error instanceof PropertyNotFoundError) {
-        response.status(404).json({ message: "Propiedad no encontrada" });
-        return;
-      }
-      if (error instanceof PropertyForbiddenError) {
-        response.status(403).json({ message: "No tenés permiso para cambiar el estado de esta propiedad" });
-        return;
-      }
-      if (error instanceof PropertyStatusInvalidTransitionError) {
-        response.status(400).json({ error: (error as Error).message });
-        return;
-      }
-      throw error;
-    }
+    const id = leerId(request, "Propiedad no encontrada");
+    const { status } = validar(patchStatusSchema, request.body);
+    const result = await propertyStatusService.changeStatus(id, request.sellerId!, status);
+    response.json(result);
   }
 
   async getStatusHistory(request: Request, response: Response): Promise<void> {
-    const { id } = request.params;
-    if (typeof id !== "string" || !ID_REGEX.test(id)) {
-      response.status(404).json({ message: "Propiedad no encontrada" });
-      return;
-    }
-    try {
-      const history = await propertyStatusService.getHistory(Number(id));
-      response.json(history);
-    } catch (error) {
-      if (error instanceof PropertyNotFoundError) {
-        response.status(404).json({ message: "Propiedad no encontrada" });
-        return;
-      }
-      throw error;
-    }
+    const id = leerId(request, "Propiedad no encontrada");
+    const history = await propertyStatusService.getHistory(id);
+    response.json(history);
   }
 
   // ── Tarea 7: Comentarios ─────────────────────────────────────────────────
 
   async createComment(request: Request, response: Response): Promise<void> {
-    const { id } = request.params;
-    if (typeof id !== "string" || !ID_REGEX.test(id)) {
-      response.status(404).json({ message: "Propiedad no encontrada" });
-      return;
-    }
-
-    const parseResult = createCommentSchema.safeParse(request.body);
-    if (!parseResult.success) {
-      response.status(400).json({ error: "Body inválido", details: parseResult.error.issues });
-      return;
-    }
-
-    try {
-      const comment = await commentService.create(
-        Number(id),
-        parseResult.data.authorName,
-        parseResult.data.content
-      );
-      response.status(201).json(comment);
-    } catch (error) {
-      if (error instanceof CommentPropertyNotFoundError) {
-        response.status(404).json({ message: "Propiedad no encontrada" });
-        return;
-      }
-      throw error;
-    }
+    const id = leerId(request, "Propiedad no encontrada");
+    const { authorName, content } = validar(createCommentSchema, request.body);
+    const comment = await commentService.create(id, authorName, content);
+    response.status(201).json(comment);
   }
 
   async getComments(request: Request, response: Response): Promise<void> {
-    const { id } = request.params;
-    if (typeof id !== "string" || !ID_REGEX.test(id)) {
-      response.status(404).json({ message: "Propiedad no encontrada" });
-      return;
-    }
-    try {
-      const comments = await commentService.listByProperty(Number(id));
-      response.json(comments);
-    } catch (error) {
-      if (error instanceof CommentPropertyNotFoundError) {
-        response.status(404).json({ message: "Propiedad no encontrada" });
-        return;
-      }
-      throw error;
-    }
+    const id = leerId(request, "Propiedad no encontrada");
+    const comments = await commentService.listByProperty(id);
+    response.json(comments);
   }
 }
 

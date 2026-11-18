@@ -1,10 +1,24 @@
+import { ErrorNoEncontrado, ErrorProhibido, ErrorReglaNegocio } from "../errors/dominio.errors";
 import { repositorioPropiedad } from "../repositories/property.repository";
 import { repositorioHistorialEstado } from "../repositories/property-status-history.repository";
+import { repositorioGaleriaImagen } from "../repositories/galeria-imagen.repository";
 import { PropertyStatus } from "../entities/enums";
 
-export class ErrorTransicionEstadoInvalida extends Error {}
-export class ErrorPropiedadNoEncontrada extends Error {}
-export class ErrorSinPermiso extends Error {}
+export class ErrorTransicionEstadoInvalida extends ErrorReglaNegocio {
+  constructor(mensaje = "Transición de estado inválida") {
+    super(mensaje);
+  }
+}
+export class ErrorPropiedadNoEncontrada extends ErrorNoEncontrado {
+  constructor(mensaje = "Propiedad no encontrada") {
+    super(mensaje);
+  }
+}
+export class ErrorSinPermiso extends ErrorProhibido {
+  constructor(mensaje = "No tenés permiso sobre esta propiedad") {
+    super(mensaje);
+  }
+}
 
 export {
   ErrorTransicionEstadoInvalida as PropertyStatusInvalidTransitionError,
@@ -43,6 +57,14 @@ class ServicioEstadoPropiedad {
       );
     }
 
+    // Regla del enunciado: "Galería de fotos (mínimo una)". No se publica sin fotos.
+    if (nuevoEstado === PropertyStatus.PUBLISHED) {
+      const cantidadFotos = await repositorioGaleriaImagen.contarPorPropiedadId(propiedadId);
+      if (cantidadFotos === 0) {
+        throw new ErrorReglaNegocio("Para publicar, la propiedad tiene que tener al menos una foto");
+      }
+    }
+
     await repositorioHistorialEstado.crear({
       propiedadId,
       estadoAnterior: propiedad.status,
@@ -71,4 +93,3 @@ class ServicioEstadoPropiedad {
 
 export const servicioEstadoPropiedad = new ServicioEstadoPropiedad();
 export const propertyStatusService = servicioEstadoPropiedad;
-

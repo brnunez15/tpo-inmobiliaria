@@ -1,8 +1,13 @@
+import { ErrorNoEncontrado } from "../errors/dominio.errors";
 import { repositorioReseña } from "../repositories/review.repository";
 import { repositorioInmobiliaria } from "../repositories/inmobiliaria.repositorio";
 import { repositorioActividad } from "../repositories/activity.repository";
 
-export class ErrorInmobiliariaNoEncontrada extends Error {}
+export class ErrorInmobiliariaNoEncontrada extends ErrorNoEncontrado {
+  constructor(mensaje = "Inmobiliaria no encontrada") {
+    super(mensaje);
+  }
+}
 
 export { ErrorInmobiliariaNoEncontrada as AgencyNotFoundError };
 
@@ -45,4 +50,3 @@ class ServicioReseña {
 
 export const servicioReseña = new ServicioReseña();
 export const reviewService = servicioReseña;
-

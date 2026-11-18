@@ -1,10 +1,23 @@
+import { ErrorNoEncontrado, ErrorProhibido } from "../errors/dominio.errors";
 import { repositorioComentario } from "../repositories/comment.repository";
 import { repositorioPropiedad } from "../repositories/property.repository";
 import { repositorioActividad } from "../repositories/activity.repository";
 
-export class ErrorComentarioNoEncontrado extends Error {}
-export class ErrorSinPermiso extends Error {}
-export class ErrorPropiedadNoEncontrada extends Error {}
+export class ErrorComentarioNoEncontrado extends ErrorNoEncontrado {
+  constructor(mensaje = "Comentario no encontrado") {
+    super(mensaje);
+  }
+}
+export class ErrorSinPermiso extends ErrorProhibido {
+  constructor(mensaje = "No tenés permiso para responder este comentario") {
+    super(mensaje);
+  }
+}
+export class ErrorPropiedadNoEncontrada extends ErrorNoEncontrado {
+  constructor(mensaje = "Propiedad no encontrada") {
+    super(mensaje);
+  }
+}
 
 export {
   ErrorComentarioNoEncontrado as CommentNotFoundError,
@@ -37,7 +50,10 @@ class ServicioComentario {
     if (!comentario) throw new ErrorComentarioNoEncontrado();
     if (comentario.property.agency.seller.id !== vendedorId) throw new ErrorSinPermiso();
 
-    return repositorioComentario.guardarRespuesta(comentario, respuesta);
+    const guardado = await repositorioComentario.guardarRespuesta(comentario, respuesta);
+    // Se devuelve sin la propiedad: venía cargada con el vendedor (y su passwordHash)
+    const { property, ...datos } = guardado;
+    return { ...datos, propertyId: property.id };
   }
 
   async listarPorPropiedad(propiedadId: number) {
@@ -61,4 +77,3 @@ class ServicioComentario {
 
 export const servicioComentario = new ServicioComentario();
 export const commentService = servicioComentario;
-

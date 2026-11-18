@@ -1,14 +1,35 @@
+import { ErrorNoEncontrado, ErrorProhibido, ErrorReglaNegocio } from "../errors/dominio.errors";
 import { repositorioSolicitudVisita } from "../repositories/visit-request.repository";
 import { repositorioPropiedad } from "../repositories/property.repository";
 import { repositorioInmobiliaria } from "../repositories/inmobiliaria.repositorio";
 import { repositorioActividad } from "../repositories/activity.repository";
 import { VisitRequestStatus } from "../entities/enums";
 
-export class ErrorVisitaNoEncontrada extends Error {}
-export class ErrorSinPermiso extends Error {}
-export class ErrorTransicionVisitaInvalida extends Error {}
-export class ErrorPropiedadNoEncontrada extends Error {}
-export class ErrorInmobiliariaNoEncontrada extends Error {}
+export class ErrorVisitaNoEncontrada extends ErrorNoEncontrado {
+  constructor(mensaje = "Solicitud de visita no encontrada") {
+    super(mensaje);
+  }
+}
+export class ErrorSinPermiso extends ErrorProhibido {
+  constructor(mensaje = "No tenés permiso sobre esta solicitud de visita") {
+    super(mensaje);
+  }
+}
+export class ErrorTransicionVisitaInvalida extends ErrorReglaNegocio {
+  constructor(mensaje = "Transición de visita inválida") {
+    super(mensaje);
+  }
+}
+export class ErrorPropiedadNoEncontrada extends ErrorNoEncontrado {
+  constructor(mensaje = "Propiedad no encontrada") {
+    super(mensaje);
+  }
+}
+export class ErrorInmobiliariaNoEncontrada extends ErrorNoEncontrado {
+  constructor(mensaje = "Inmobiliaria no encontrada") {
+    super(mensaje);
+  }
+}
 
 export {
   ErrorVisitaNoEncontrada as VisitRequestNotFoundError,
@@ -37,7 +58,7 @@ class ServicioSolicitudVisita {
     }
   ) {
     if (datos.fechaPropuesta <= new Date()) {
-      throw new Error("La fecha propuesta debe ser en el futuro");
+      throw new ErrorReglaNegocio("La fecha propuesta debe ser en el futuro");
     }
 
     const propiedad = await repositorioPropiedad.buscarPorId(propiedadId);
@@ -66,7 +87,10 @@ class ServicioSolicitudVisita {
       );
     }
 
-    return repositorioSolicitudVisita.actualizarEstado(visita, nuevoEstado);
+    const guardada = await repositorioSolicitudVisita.actualizarEstado(visita, nuevoEstado);
+    // Se devuelve sin la propiedad: venía cargada con el vendedor (y su passwordHash)
+    const { property, ...datos } = guardada;
+    return { ...datos, propertyId: property.id };
   }
 
   async listarPorInmobiliaria(inmobiliariaId: number, vendedorId: number) {
@@ -105,4 +129,3 @@ class ServicioSolicitudVisita {
 
 export const servicioSolicitudVisita = new ServicioSolicitudVisita();
 export const visitRequestService = servicioSolicitudVisita;
-

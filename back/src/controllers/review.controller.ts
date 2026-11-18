@@ -1,8 +1,7 @@
 import type { Request, Response } from "express";
 import { z } from "zod";
-import { reviewService, AgencyNotFoundError } from "../services/review.service";
-
-const ID_REGEX = /^\d+$/;
+import { reviewService } from "../services/review.service";
+import { leerId, validar } from "./helpers";
 
 const createReviewSchema = z.object({
   authorName: z.string().trim().min(1).max(120),
@@ -12,46 +11,16 @@ const createReviewSchema = z.object({
 
 class ReviewController {
   async create(request: Request, response: Response): Promise<void> {
-    const { id } = request.params;
-    if (typeof id !== "string" || !ID_REGEX.test(id)) {
-      response.status(404).json({ message: "Inmobiliaria no encontrada" });
-      return;
-    }
-
-    const parseResult = createReviewSchema.safeParse(request.body);
-    if (!parseResult.success) {
-      response.status(400).json({ error: "Body inválido", details: parseResult.error.issues });
-      return;
-    }
-
-    try {
-      const review = await reviewService.create(Number(id), parseResult.data);
-      response.status(201).json(review);
-    } catch (error) {
-      if (error instanceof AgencyNotFoundError) {
-        response.status(404).json({ message: "Inmobiliaria no encontrada" });
-        return;
-      }
-      throw error;
-    }
+    const id = leerId(request, "Inmobiliaria no encontrada");
+    const datos = validar(createReviewSchema, request.body);
+    const review = await reviewService.create(id, datos);
+    response.status(201).json(review);
   }
 
   async list(request: Request, response: Response): Promise<void> {
-    const { id } = request.params;
-    if (typeof id !== "string" || !ID_REGEX.test(id)) {
-      response.status(404).json({ message: "Inmobiliaria no encontrada" });
-      return;
-    }
-    try {
-      const reviews = await reviewService.listByAgency(Number(id));
-      response.json(reviews);
-    } catch (error) {
-      if (error instanceof AgencyNotFoundError) {
-        response.status(404).json({ message: "Inmobiliaria no encontrada" });
-        return;
-      }
-      throw error;
-    }
+    const id = leerId(request, "Inmobiliaria no encontrada");
+    const reviews = await reviewService.listByAgency(id);
+    response.json(reviews);
   }
 }
 

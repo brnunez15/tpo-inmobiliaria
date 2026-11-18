@@ -1,3 +1,4 @@
+import { ErrorNoEncontrado, ErrorProhibido, ErrorReglaNegocio } from "../errors/dominio.errors";
 import { repositorioPropiedad } from "../repositories/property.repository";
 import { repositorioInmobiliaria } from "../repositories/inmobiliaria.repositorio";
 import { ErrorSinPermiso } from "./property-status.service";
@@ -7,8 +8,16 @@ import { Propiedad } from "../entities/propiedad";
 import { GaleriaImagen } from "../entities/galeria-imagenes";
 import { PropertyType, OperationType, PropertyStatus } from "../entities/enums";
 
-export class ErrorPropiedadNoEncontrada extends Error {}
-export class ErrorSinInmobiliaria extends Error {}
+export class ErrorPropiedadNoEncontrada extends ErrorNoEncontrado {
+  constructor(mensaje = "Propiedad no encontrada") {
+    super(mensaje);
+  }
+}
+export class ErrorSinInmobiliaria extends ErrorProhibido {
+  constructor(mensaje = "Necesitás tener una inmobiliaria para publicar propiedades") {
+    super(mensaje);
+  }
+}
 
 interface DatosCrearPropiedad {
   title: string;
@@ -75,14 +84,14 @@ function validarSuperficies(
   total: string | number,
   cubierta: string | number | null | undefined
 ): void {
-  if (!(Number(total) > 0)) throw new Error("La superficie total debe ser mayor a 0");
+  if (!(Number(total) > 0)) throw new ErrorReglaNegocio("La superficie total debe ser mayor a 0");
 
   if (tipo === PropertyType.LAND) return; // al Terreno no le aplica la superficie cubierta
   if (cubierta === null || cubierta === undefined) return; // la cubierta es opcional: se valida "cuando se informa"
 
-  if (!(Number(cubierta) > 0)) throw new Error("La superficie cubierta debe ser mayor a 0");
+  if (!(Number(cubierta) > 0)) throw new ErrorReglaNegocio("La superficie cubierta debe ser mayor a 0");
   if (Number(cubierta) > Number(total)) {
-    throw new Error("La superficie cubierta no puede superar la superficie total");
+    throw new ErrorReglaNegocio("La superficie cubierta no puede superar la superficie total");
   }
 }
 
@@ -115,7 +124,7 @@ class ServicioPropiedad {
 
   async crear(vendedorId: number, datos: Omit<DatosCrearPropiedad, "agency">): Promise<Propiedad> {
     if (Number(datos.price) <= 0) {
-      throw new Error("El precio debe ser mayor a 0");
+      throw new ErrorReglaNegocio("El precio debe ser mayor a 0");
     }
     validarSuperficies(datos.type, datos.totalAreaM2, datos.coveredAreaM2);
 
@@ -150,16 +159,16 @@ class ServicioPropiedad {
       propiedad.status === PropertyStatus.RENTED ||
       propiedad.status === PropertyStatus.CANCELLED
     ) {
-      throw new Error("No se puede editar una propiedad Vendida, Alquilada o Cancelada");
+      throw new ErrorReglaNegocio("No se puede editar una propiedad Vendida, Alquilada o Cancelada");
     }
 
     const tieneVisitaConfirmada = await repositorioSolicitudVisita.tieneConfirmadaPendiente(id);
     if (tieneVisitaConfirmada) {
-      throw new Error("No se puede editar una propiedad con una visita Confirmada pendiente");
+      throw new ErrorReglaNegocio("No se puede editar una propiedad con una visita Confirmada pendiente");
     }
 
     if (datos.price !== undefined && Number(datos.price) <= 0) {
-      throw new Error("El precio debe ser mayor a 0");
+      throw new ErrorReglaNegocio("El precio debe ser mayor a 0");
     }
 
     // Valores finales = lo que ya tenía la propiedad + lo que se está cambiando
@@ -195,7 +204,15 @@ class ServicioPropiedad {
 
   async findAll(filtros: FiltrosPropiedades, paginacion: { page: number; limit: number }) {
     const res = await this.buscarTodos(filtros, { pagina: paginacion.page, limite: paginacion.limit });
-    return { data: res.datos, total: res.total };
+
+    // Cada tarjeta del listado muestra su foto de portada
+    const portadas = await repositorioGaleriaImagen.buscarPortadas(res.datos.map((p) => p.id));
+    const data = res.datos.map((propiedad) => {
+      const portada = portadas.find((imagen) => imagen.property.id === propiedad.id);
+      return { ...propiedad, portada: portada ? portada.url : null };
+    });
+
+    return { data, total: res.total };
   }
 }
 

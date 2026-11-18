@@ -1,3 +1,4 @@
+import { ErrorConflicto, ErrorNoAutenticado } from "../errors/dominio.errors";
 import { repositorioVendedor } from "../repositories/vendedor.repositorio";
 import { repositorioInmobiliaria } from "../repositories/inmobiliaria.repositorio";
 import { AppDataSource } from "../config/data-source";
@@ -6,9 +7,21 @@ import { Inmobiliaria } from "../entities/inmobiliaria";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
-export class ErrorEmailDuplicado extends Error {}
-export class ErrorNombreInmobiliariaDuplicado extends Error {}
-export class ErrorCredencialesInvalidas extends Error {}
+export class ErrorEmailDuplicado extends ErrorConflicto {
+  constructor(mensaje = "El email ya está registrado") {
+    super(mensaje);
+  }
+}
+export class ErrorNombreInmobiliariaDuplicado extends ErrorConflicto {
+  constructor(mensaje = "El nombre de fantasía ya existe") {
+    super(mensaje);
+  }
+}
+export class ErrorCredencialesInvalidas extends ErrorNoAutenticado {
+  constructor(mensaje = "Credenciales inválidas") {
+    super(mensaje);
+  }
+}
 
 export {
   ErrorEmailDuplicado as EmailAlreadyExistsError,
@@ -16,20 +29,20 @@ export {
   ErrorCredencialesInvalidas as InvalidCredentialsError,
 };
 
-// Duración del token: 2 horas (lo pide el enunciado)
+/* ahora el token dura 2 horas */
 const DURACION_TOKEN = "2h";
 
-// Lo que devuelven register y login
 interface RespuestaAuth {
   token: string;
   sellerId: number;
-  agencyId: number;
+  agencyId: number | null; // null si el vendedor eliminó su inmobiliaria
 }
 
 interface DatosRegistro {
   email: string;
   password: string;
   fullName: string;
+  telefono?: string | null;
   nombreInmobiliaria: string;
   descripcion: string;
   telefonoContacto: string;
@@ -39,7 +52,6 @@ interface DatosRegistro {
 }
 
 class ServicioAuth {
-  // Un solo lugar donde se firma el token, así la duración no se repite
   private generarToken(sellerId: number): string {
     return jwt.sign({ sellerId }, process.env.JWT_SECRET!, {
       expiresIn: DURACION_TOKEN,
@@ -56,7 +68,6 @@ class ServicioAuth {
 
     const hashContrasena = await bcrypt.hash(datos.password, 10);
 
-    // Crear Vendedor + Inmobiliaria en una transacción
     const { vendedor, inmobiliaria } = await AppDataSource.transaction(async (manager) => {
       const repoVendedor = manager.getRepository(Vendedor);
       const repoInmobiliaria = manager.getRepository(Inmobiliaria);
@@ -65,6 +76,7 @@ class ServicioAuth {
         email: datos.email,
         passwordHash: hashContrasena,
         fullName: datos.fullName,
+        phone: datos.telefono ?? null,
       });
       await repoVendedor.save(nuevoVendedor);
 
@@ -79,7 +91,7 @@ class ServicioAuth {
       });
       await repoInmobiliaria.save(nuevaInmobiliaria);
 
-      // Ahora devolvemos también la inmobiliaria para tener su id
+      /* se devuelve el id de la inmobiliaria */
       return { vendedor: nuevoVendedor, inmobiliaria: nuevaInmobiliaria };
     });
 
@@ -99,15 +111,30 @@ class ServicioAuth {
 
     // Buscamos la inmobiliaria del vendedor (relación 1:1)
     const inmobiliaria = await repositorioInmobiliaria.buscarPorVendedorId(vendedor.id);
-    if (!inmobiliaria) {
-      // No debería pasar: el registro crea las dos cosas juntas en una transacción
-      throw new Error("El vendedor no tiene inmobiliaria asociada");
-    }
 
     return {
       token: this.generarToken(vendedor.id),
       sellerId: vendedor.id,
-      agencyId: inmobiliaria.id,
+      // Un vendedor tiene "como máximo" una inmobiliaria: si la eliminó, puede
+      // seguir entrando y el front le muestra que no tiene inmobiliaria.
+      agencyId: inmobiliaria ? inmobiliaria.id : null,
+    };
+  }
+
+  /** Datos del vendedor logueado (GET /auth/me). Nunca se devuelve el passwordHash. */
+  async obtenerPerfil(vendedorId: number) {
+    const vendedor = await repositorioVendedor.buscarPorId(vendedorId);
+    // El token es válido pero el vendedor ya no existe (por ej. se dio de baja)
+    if (!vendedor) throw new ErrorCredencialesInvalidas("El vendedor del token ya no existe");
+
+    const inmobiliaria = await repositorioInmobiliaria.buscarPorVendedorId(vendedor.id);
+
+    return {
+      id: vendedor.id,
+      fullName: vendedor.fullName,
+      email: vendedor.email,
+      phone: vendedor.phone,
+      agencyId: inmobiliaria ? inmobiliaria.id : null,
     };
   }
 
@@ -115,6 +142,7 @@ class ServicioAuth {
     email: string;
     password: string;
     fullName: string;
+    phone?: string | null;
     agencyName: string;
     contactPhone: string;
     contactEmail: string;
@@ -126,6 +154,7 @@ class ServicioAuth {
       email: datos.email,
       password: datos.password,
       fullName: datos.fullName,
+      telefono: datos.phone,
       nombreInmobiliaria: datos.agencyName,
       descripcion: datos.description,
       telefonoContacto: datos.contactPhone,

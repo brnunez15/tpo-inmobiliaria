@@ -1,4 +1,4 @@
-import { Repository } from "typeorm";
+import { In, Repository } from "typeorm";
 import { AppDataSource } from "../config/data-source";
 import { GaleriaImagen } from "../entities/galeria-imagenes";
 
@@ -10,6 +10,27 @@ class RepositorioGaleriaImagen {
   buscarPorPropiedadId(propiedadId: number): Promise<GaleriaImagen[]> {
     return this.repositorio.find({
       where: { property: { id: propiedadId } },
+      order: { position: "ASC" },
+    });
+  }
+
+  /** Una foto puntual de una propiedad (null si no existe o es de otra propiedad). */
+  buscarDePropiedad(imagenId: number, propiedadId: number): Promise<GaleriaImagen | null> {
+    return this.repositorio.findOne({
+      where: { id: imagenId, property: { id: propiedadId } },
+    });
+  }
+
+  contarPorPropiedadId(propiedadId: number): Promise<number> {
+    return this.repositorio.count({ where: { property: { id: propiedadId } } });
+  }
+
+  /** Portadas de varias propiedades a la vez (para las tarjetas de los listados). */
+  buscarPortadas(propiedadIds: number[]): Promise<GaleriaImagen[]> {
+    if (propiedadIds.length === 0) return Promise.resolve([]);
+    return this.repositorio.find({
+      where: { property: { id: In(propiedadIds) }, isCover: true },
+      relations: { property: true },
     });
   }
 }

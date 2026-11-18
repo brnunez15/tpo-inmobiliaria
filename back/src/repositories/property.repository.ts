@@ -15,6 +15,14 @@ class RepositorioPropiedad {
     });
   }
 
+  /** Todas las propiedades de una inmobiliaria, en cualquier estado ("Mis propiedades"). */
+  buscarPorInmobiliariaId(inmobiliariaId: number): Promise<Propiedad[]> {
+    return this.repositorio.find({
+      where: { agency: { id: inmobiliariaId } },
+      order: { updatedAt: "DESC" },
+    });
+  }
+
   crear(
     datos: Omit<Propiedad, "id" | "createdAt" | "updatedAt" | "agency"> & { agency: { id: number } }
   ): Promise<Propiedad> {

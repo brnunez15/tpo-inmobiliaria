@@ -12,6 +12,10 @@ export const inmoRouter = Router();
 inmoRouter.get("/:id", (req, res) => agencyController.getPublic(req, res));
 inmoRouter.get("/:id/properties", (req, res) => agencyController.getProperties(req, res));
 
+// Pantallas del vendedor (solo dueño)
+inmoRouter.get("/:id/my-properties", requireAuth, (req, res) => agencyController.getMyProperties(req, res));
+inmoRouter.get("/:id/comments", requireAuth, (req, res) => agencyController.getComments(req, res));
+
 // ABM (solo dueño)
 inmoRouter.put("/:id", requireAuth, (req, res) => agencyController.update(req, res));
 inmoRouter.delete("/:id", requireAuth, (req, res) => agencyController.delete(req, res));

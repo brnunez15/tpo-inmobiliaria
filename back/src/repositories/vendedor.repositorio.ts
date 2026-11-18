@@ -11,6 +11,10 @@ class RepositorioVendedor {
     return this.repositorio.findOneBy({ email });
   }
 
+  buscarPorId(id: number): Promise<Vendedor | null> {
+    return this.repositorio.findOneBy({ id });
+  }
+
   crear(datos: { email: string; passwordHash: string; fullName: string }): Promise<Vendedor> {
     const vendedor = this.repositorio.create(datos);
     return this.repositorio.save(vendedor);
