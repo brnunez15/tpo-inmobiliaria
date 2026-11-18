@@ -1,6 +1,8 @@
+import { AppDataSource } from "../config/data-source";
 import { repositorioPropiedad } from "../repositories/property.repository";
+import { repositorioActividad } from "../repositories/activity.repository";
 import { repositorioHistorialEstado } from "../repositories/property-status-history.repository";
-import { PropertyStatus } from "../entities/enums";
+import { PropertyStatus, OperationType } from "../entities/enums";
 
 export class ErrorTransicionEstadoInvalida extends Error {}
 export class ErrorPropiedadNoEncontrada extends Error {}
@@ -43,13 +45,23 @@ class ServicioEstadoPropiedad {
       );
     }
 
-    await repositorioHistorialEstado.crear({
-      propiedadId,
-      estadoAnterior: propiedad.status,
-      estadoNuevo: nuevoEstado,
-    });
+    // Vendida solo para Venta y Alquilada solo para Alquiler
+    if (nuevoEstado === PropertyStatus.SOLD && propiedad.operation !== OperationType.SALE) {
+      throw new ErrorTransicionEstadoInvalida("Una propiedad en Alquiler no puede pasar a Vendida");
+    }
+    if (nuevoEstado === PropertyStatus.RENTED && propiedad.operation !== OperationType.RENT) {
+      throw new ErrorTransicionEstadoInvalida("Una propiedad en Venta no puede pasar a Alquilada");
+    }
 
-    await repositorioPropiedad.actualizar(propiedadId, { status: nuevoEstado });
+    // Historial + cambio de estado + novedad para el feed: o se guardan los tres o ninguno
+    await AppDataSource.transaction(async (manager) => {
+      await repositorioHistorialEstado.crear(
+        { propiedadId, estadoAnterior: propiedad.status, estadoNuevo: nuevoEstado },
+        manager
+      );
+      await repositorioPropiedad.actualizar(propiedadId, { status: nuevoEstado }, manager);
+      await repositorioActividad.crearPorCambioEstado(propiedad.agency.id, propiedadId, manager);
+    });
 
     return { status: nuevoEstado };
   }
@@ -71,4 +83,3 @@ class ServicioEstadoPropiedad {
 
 export const servicioEstadoPropiedad = new ServicioEstadoPropiedad();
 export const propertyStatusService = servicioEstadoPropiedad;
-

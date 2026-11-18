@@ -2,6 +2,7 @@ import { Repository } from "typeorm";
 import { AppDataSource } from "../config/data-source";
 import { Propiedad } from "../entities/propiedad";
 import { PropertyStatus } from "../entities/enums";
+import type { EntityManager } from "typeorm";
 
 class RepositorioPropiedad {
   private get repositorio(): Repository<Propiedad> {
@@ -22,9 +23,14 @@ class RepositorioPropiedad {
     return this.repositorio.save(propiedad);
   }
 
-  async actualizar(id: number, datos: Record<string, unknown>): Promise<Propiedad> {
-    await this.repositorio.update(id, datos as object);
-    return this.repositorio.findOneByOrFail({ id });
+    async actualizar(
+    id: number,
+    datos: Record<string, unknown>,
+    manager?: EntityManager
+  ): Promise<Propiedad> {
+    const repo = manager ? manager.getRepository(Propiedad) : this.repositorio;
+    await repo.update(id, datos as object);
+    return repo.findOneByOrFail({ id });
   }
 
   async buscarTodos(
