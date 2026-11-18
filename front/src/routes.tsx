@@ -7,6 +7,8 @@
 import { Navigate, type RouteObject } from "react-router";
 import LayoutPanel from "./layouts/LayoutPanel";
 import RequireAuth from "./layouts/RequireAuth";
+import LayoutPublico from "./layouts/LayoutPublico";
+import Listado from "./pages/publico/Listado";
 import NoEncontrado from "./pages/NoEncontrado";
 import Actividad from "./pages/panel/Actividad";
 import Consultas from "./pages/panel/Consultas";
@@ -17,12 +19,10 @@ import Reportes from "./pages/panel/Reportes";
 import Visitas from "./pages/panel/Visitas";
 
 export const rutas: RouteObject[] = [
-  // ── Zona pública (Interesado) y autenticación ── (Brisa)
-  // TODO Brisa: element LayoutPublico con "/" Listado, "/propiedades/:id" Detalle, "/inmobiliarias/:id" Sitio,
-  //             y sin layout "/ingresar" Login y "/registro" Registro.
-
-  // ── Zona del vendedor ── (Néstor)
-  // La guardia va arriba: si no hay sesión, ninguna ruta del panel se dibuja
+    {
+    element: <LayoutPublico />,
+    children: [{ path: "/", element: <Listado /> }],
+  },
   {
     element: <RequireAuth />,
     children: [
