@@ -30,8 +30,11 @@ export default function Visitas() {
     setVisitas((lista) => lista && lista.map((v) => (v.id === id ? { ...v, status: estado } : v)));
   }
 
-  // Agrupar por propiedad: un dato calculado en cada render, no va en el estado
-  const titulos = [...new Set(visitas.map((v) => v.property.title))];
+  // Agrupar por propiedad: un dato calculado en cada render, no va en el estado.
+  // filter deja cada título una sola vez: se queda solo con su primera aparición en la lista.
+  const titulos = visitas
+    .map((v) => v.property.title)
+    .filter((titulo, indice, lista) => lista.indexOf(titulo) === indice);
 
   return (
     <>
