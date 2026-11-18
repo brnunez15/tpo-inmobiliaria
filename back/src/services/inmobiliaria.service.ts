@@ -1,3 +1,4 @@
+import { PropertyStatus } from "../entities/enums";
 import { ErrorConflicto, ErrorNoEncontrado, ErrorProhibido } from "../errors/dominio.errors";
 import { AppDataSource } from "../config/data-source";
 import { repositorioInmobiliaria } from "../repositories/inmobiliaria.repositorio";
@@ -108,25 +109,38 @@ class ServicioInmobiliaria {
   }
 
   /**
-   * "Mis propiedades" (pantalla del vendedor): TODAS sus propiedades, en
-   * cualquier estado, con la foto de portada y cuántas consultas sin responder tiene cada una.
+   * "Mis propiedades" (pantalla del vendedor): sus propiedades en cualquier estado
+   * (o solo las de un estado), paginadas, con la foto de portada y cuántas
+   * consultas sin responder tiene cada una.
    */
-  async obtenerMisPropiedades(id: number, vendedorId: number) {
+  async obtenerMisPropiedades(
+    id: number,
+    vendedorId: number,
+    filtros: { estado?: PropertyStatus },
+    paginacion: { pagina: number; limite: number }
+  ) {
     await this.validarDueño(id, vendedorId);
 
-    const propiedades = await repositorioPropiedad.buscarPorInmobiliariaId(id);
+    const { datos: propiedades, total } = await repositorioPropiedad.buscarPorInmobiliariaId(
+      id,
+      filtros,
+      paginacion
+    );
     const portadas = await repositorioGaleriaImagen.buscarPortadas(propiedades.map((p) => p.id));
     const sinResponder = await repositorioComentario.contarSinResponderPorPropiedad(id);
 
-    return propiedades.map((propiedad) => {
+    const data = propiedades.map((propiedad) => {
       const portada = portadas.find((imagen) => imagen.property.id === propiedad.id);
       const conteo = sinResponder.find((fila) => Number(fila.propiedadId) === propiedad.id);
       return {
         ...propiedad,
-        portada: portada ? portada.url : null,
+        // Mismo nombre que en el listado público (GET /properties)
+        coverImageUrl: portada ? portada.url : null,
         consultasSinResponder: conteo ? Number(conteo.cantidad) : 0,
       };
     });
+
+    return { data, total };
   }
 
   /**

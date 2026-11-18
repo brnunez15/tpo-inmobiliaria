@@ -16,12 +16,27 @@ class RepositorioPropiedad {
     });
   }
 
-  /** Todas las propiedades de una inmobiliaria, en cualquier estado ("Mis propiedades"). */
-  buscarPorInmobiliariaId(inmobiliariaId: number): Promise<Propiedad[]> {
-    return this.repositorio.find({
-      where: { agency: { id: inmobiliariaId } },
+  /**
+   * Propiedades de una inmobiliaria en cualquier estado ("Mis propiedades"),
+   * con filtro opcional por estado y paginadas.
+   * findAndCount devuelve [la página pedida, el total sin paginar].
+   */
+  async buscarPorInmobiliariaId(
+    inmobiliariaId: number,
+    filtros: { estado?: PropertyStatus },
+    paginacion: { pagina: number; limite: number }
+  ): Promise<{ datos: Propiedad[]; total: number }> {
+    const [datos, total] = await this.repositorio.findAndCount({
+      where: {
+        agency: { id: inmobiliariaId },
+        // Si no vino estado, la condición no se agrega (undefined se ignora)
+        status: filtros.estado,
+      },
       order: { updatedAt: "DESC" },
+      skip: (paginacion.pagina - 1) * paginacion.limite,
+      take: paginacion.limite,
     });
+    return { datos, total };
   }
 
   crear(

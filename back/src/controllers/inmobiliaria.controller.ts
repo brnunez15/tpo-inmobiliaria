@@ -2,6 +2,7 @@ import type { Request, Response } from "express";
 import { z } from "zod";
 import { agencyService } from "../services/inmobiliaria.service";
 import { leerId, validar } from "./helpers";
+import { PropertyStatus } from "../entities/enums";
 
 const updateSchema = z.object({
   name: z.string().trim().min(1).max(120).optional(),
@@ -10,6 +11,11 @@ const updateSchema = z.object({
   contactPhone: z.string().trim().min(1).max(40).optional(),
   contactEmail: z.string().email().max(255).optional(),
   officeAddress: z.string().trim().max(255).nullable().optional(),
+});
+
+// Filtro opcional por estado: si viene, tiene que ser un estado válido (si no, 400)
+const misPropiedadesSchema = z.object({
+  status: z.nativeEnum(PropertyStatus).optional(),
 });
 
 class AgencyController {
@@ -38,17 +44,33 @@ class AgencyController {
     response.json(properties);
   }
 
-  // GET /agencies/:id/my-properties — "Mis propiedades" (solo el dueño)
+  // GET /agencies/:id/my-properties?status=PUBLISHED&page=1&limit=10 — "Mis propiedades" (solo el dueño)
   async getMyProperties(request: Request, response: Response): Promise<void> {
     const id = leerId(request, "Inmobiliaria no encontrada");
-    const properties = await agencyService.obtenerMisPropiedades(id, request.sellerId!);
-    response.json(properties);
+    const { status } = validar(misPropiedadesSchema, request.query);
+
+    // Misma paginación que GET /properties
+    const pageNum = Math.max(1, Number(request.query.page ?? 1));
+    const limitNum = Math.min(100, Math.max(1, Number(request.query.limit ?? 20)));
+
+    const { data, total } = await agencyService.obtenerMisPropiedades(
+      id,
+      request.sellerId!,
+      { estado: status },
+      { pagina: pageNum, limite: limitNum }
+    );
+
+    // Mismo formato de respuesta que GET /properties
+    response.json({
+      data,
+      meta: { total, page: pageNum, limit: limitNum, totalPages: Math.ceil(total / limitNum) },
+    });
   }
 
-  // GET /agencies/:id/comments?pending=true — "Consultas" (solo el dueño)
+  // GET /agencies/:id/comments?unanswered=true — "Consultas" (solo el dueño)
   async getComments(request: Request, response: Response): Promise<void> {
     const id = leerId(request, "Inmobiliaria no encontrada");
-    const soloSinResponder = request.query.pending === "true";
+    const soloSinResponder = request.query.unanswered === "true";
     const comments = await agencyService.obtenerConsultas(id, request.sellerId!, soloSinResponder);
     response.json(comments);
   }
