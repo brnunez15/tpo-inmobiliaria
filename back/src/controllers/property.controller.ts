@@ -25,6 +25,7 @@ const createPropertySchema = z.object({
   bathrooms: z.number().int().nullable().optional(),
   ageYears: z.number().int().nullable().optional(),
   tags: z.array(z.string()).optional(),
+  images: z.array(z.string().trim().url("cada imagen debe ser una URL válida").max(500)).optional(),
 });
 
 const patchStatusSchema = z.object({

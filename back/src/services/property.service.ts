@@ -39,6 +39,11 @@ interface DatosCrearPropiedad {
   agency: { id: number };
 }
 
+// URLs de las fotos que llegan junto con la propiedad (la primera queda de portada)
+interface ConFotos {
+  images?: string[];
+}
+
 interface FiltrosPropiedades {
   type?: string;
   operation?: string;
@@ -67,7 +72,7 @@ interface InmobiliariaPublica {
 
 type PropiedadConGaleria = Omit<Propiedad, "agency"> & {
   agency: InmobiliariaPublica;
-  imagenes: GaleriaImagen[];
+  images: GaleriaImagen[];
 };
 
 // Un Terreno no tiene superficie cubierta, ambientes, dormitorios ni baños: se guardan en null.
@@ -100,7 +105,7 @@ class ServicioPropiedad {
     const propiedad = await repositorioPropiedad.buscarPorId(id);
     if (!propiedad) return null;
 
-    const imagenes = await repositorioGaleriaImagen.buscarPorPropiedadId(id);
+    const images = await repositorioGaleriaImagen.buscarPorPropiedadId(id);
 
     // Separamos la inmobiliaria del resto de los datos de la propiedad
     const { agency, ...datosPropiedad } = propiedad;
@@ -118,11 +123,13 @@ class ServicioPropiedad {
         contactEmail: agency.contactEmail,
         officeAddress: agency.officeAddress,
       },
-      imagenes,
+      images,
     };
   }
 
-  async crear(vendedorId: number, datos: Omit<DatosCrearPropiedad, "agency">): Promise<Propiedad> {
+  async crear(vendedorId: number, datos: Omit<DatosCrearPropiedad, "agency"> & ConFotos): Promise<Propiedad> {
+    const { images, ...datosPropiedad } = datos;
+
     if (Number(datos.price) <= 0) {
       throw new ErrorReglaNegocio("El precio debe ser mayor a 0");
     }
@@ -131,8 +138,8 @@ class ServicioPropiedad {
     const inmobiliaria = await repositorioInmobiliaria.buscarPorVendedorId(vendedorId);
     if (!inmobiliaria) throw new ErrorSinInmobiliaria("Necesitás tener una inmobiliaria para publicar propiedades");
 
-    return repositorioPropiedad.crear({
-      ...datos,
+    const propiedad = await repositorioPropiedad.crear({
+      ...datosPropiedad,
       agency: { id: inmobiliaria.id },
       type: datos.type as PropertyType,
       operation: datos.operation as OperationType,
@@ -145,9 +152,20 @@ class ServicioPropiedad {
       status: datos.status ?? PropertyStatus.DRAFT,
       ...(datos.type === PropertyType.LAND ? CAMPOS_QUE_NO_APLICAN_A_TERRENO : {}),
     });
+
+    if (images && images.length > 0) {
+      await repositorioGaleriaImagen.reemplazar(propiedad.id, images);
+    }
+    return propiedad;
   }
 
-  async actualizar(id: number, vendedorId: number, datos: Partial<DatosCrearPropiedad>): Promise<Propiedad> {
+  async actualizar(
+    id: number,
+    vendedorId: number,
+    datos: Partial<DatosCrearPropiedad> & ConFotos
+  ): Promise<Propiedad> {
+    const { images, ...datosPropiedad } = datos;
+
     const propiedad = await repositorioPropiedad.buscarPorId(id);
     if (!propiedad) throw new ErrorPropiedadNoEncontrada("Propiedad no encontrada");
     if (propiedad.agency.seller.id !== vendedorId) {
@@ -177,10 +195,22 @@ class ServicioPropiedad {
     const cubiertaFinal = datos.coveredAreaM2 !== undefined ? datos.coveredAreaM2 : propiedad.coveredAreaM2;
     validarSuperficies(tipoFinal, totalFinal, cubiertaFinal);
 
-    return repositorioPropiedad.actualizar(id, {
-      ...datos,
+    // Una propiedad Publicada o Reservada no se puede quedar sin fotos
+    const estaVisible =
+      propiedad.status === PropertyStatus.PUBLISHED || propiedad.status === PropertyStatus.RESERVED;
+    if (images !== undefined && images.length === 0 && estaVisible) {
+      throw new ErrorReglaNegocio("Una propiedad publicada tiene que tener al menos una foto");
+    }
+
+    const actualizada = await repositorioPropiedad.actualizar(id, {
+      ...datosPropiedad,
       ...(tipoFinal === PropertyType.LAND ? CAMPOS_QUE_NO_APLICAN_A_TERRENO : {}),
     });
+
+    if (images !== undefined && images.length > 0) {
+      await repositorioGaleriaImagen.reemplazar(id, images);
+    }
+    return actualizada;
   }
 
   buscarTodos(
@@ -194,11 +224,11 @@ class ServicioPropiedad {
     return this.obtenerPorId(id);
   }
 
-  create(vendedorId: number, datos: Omit<DatosCrearPropiedad, "agency">) {
+  create(vendedorId: number, datos: Omit<DatosCrearPropiedad, "agency"> & ConFotos) {
     return this.crear(vendedorId, datos);
   }
 
-  update(id: number, vendedorId: number, datos: Partial<DatosCrearPropiedad>) {
+  update(id: number, vendedorId: number, datos: Partial<DatosCrearPropiedad> & ConFotos) {
     return this.actualizar(id, vendedorId, datos);
   }
 
@@ -209,7 +239,7 @@ class ServicioPropiedad {
     const portadas = await repositorioGaleriaImagen.buscarPortadas(res.datos.map((p) => p.id));
     const data = res.datos.map((propiedad) => {
       const portada = portadas.find((imagen) => imagen.property.id === propiedad.id);
-      return { ...propiedad, portada: portada ? portada.url : null };
+      return { ...propiedad, coverImageUrl: portada ? portada.url : null };
     });
 
     return { data, total: res.total };

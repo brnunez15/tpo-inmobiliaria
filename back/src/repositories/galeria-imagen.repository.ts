@@ -33,6 +33,30 @@ class RepositorioGaleriaImagen {
       relations: { property: true },
     });
   }
+
+  /**
+   * Deja la galería de la propiedad exactamente como la lista de URLs:
+   * borra las fotos que había y guarda las nuevas en ese orden, con la primera de portada.
+   * Las dos cosas o ninguna (transacción).
+   */
+  async reemplazar(propiedadId: number, urls: string[]): Promise<void> {
+    await AppDataSource.transaction(async (manager) => {
+      const existentes = await manager.find(GaleriaImagen, {
+        where: { property: { id: propiedadId } },
+      });
+      await manager.remove(existentes);
+
+      const nuevas = urls.map((url, posicion) =>
+        manager.create(GaleriaImagen, {
+          url,
+          position: posicion,
+          isCover: posicion === 0,
+          property: { id: propiedadId },
+        })
+      );
+      await manager.save(nuevas);
+    });
+  }
 }
 
 export const repositorioGaleriaImagen = new RepositorioGaleriaImagen();
