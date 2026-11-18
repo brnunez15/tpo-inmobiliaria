@@ -100,6 +100,8 @@ class RepositorioActividad {
     return this.repositorio.save(actividad);
   }
 
+  
+
   findById(id: number) {
     return this.buscarPorId(id);
   }
@@ -114,6 +116,19 @@ class RepositorioActividad {
 
   markAsRead(actividad: Actividad) {
     return this.marcarLeida(actividad);
+  }
+
+    async marcarTodasLeidas(inmobiliariaId: number): Promise<number> {
+    const pendientes = await this.repositorio.find({
+      where: { agency: { id: inmobiliariaId }, read: false },
+    });
+    for (const actividad of pendientes) actividad.read = true;
+    await this.repositorio.save(pendientes);
+    return pendientes.length;
+  }
+
+  markAllAsRead(agencyId: number) {
+    return this.marcarTodasLeidas(agencyId);
   }
 }
 

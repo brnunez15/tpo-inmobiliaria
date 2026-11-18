@@ -36,6 +36,9 @@ inmoRouter.get("/:id/activity", requireAuth, (req, res) =>
 inmoRouter.get("/:id/activity/unread-count", requireAuth, (req, res) =>
   activityController.unreadCount(req, res)
 );
+inmoRouter.patch("/:id/activity/read-all", requireAuth, (req, res) =>
+  activityController.markAllAsRead(req, res)
+);
 
 // Reportes (solo el dueño)
 inmoRouter.get("/:id/reports/status-summary", requireAuth, (req, res) =>

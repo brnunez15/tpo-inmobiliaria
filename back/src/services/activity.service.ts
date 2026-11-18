@@ -38,6 +38,15 @@ class ActivityService {
     return { ...datos, agencyId: agency.id };
   }
 
+  async markAllAsRead(agencyId: number, sellerId: number): Promise<{ updated: number }> {
+    const agency = await agencyRepository.findById(agencyId);
+    if (!agency) throw new AgencyNotFoundError();
+    if (agency.seller.id !== sellerId) throw new ActivityForbiddenError();
+
+    const updated = await activityRepository.markAllAsRead(agencyId);
+    return { updated };
+  }
+
   async unreadCount(agencyId: number, sellerId: number): Promise<{ count: number }> {
     const agency = await agencyRepository.findById(agencyId);
     if (!agency) throw new AgencyNotFoundError();

@@ -15,6 +15,12 @@ class ActivityController {
     response.json(activity);
   }
 
+  async markAllAsRead(request: Request, response: Response): Promise<void> {
+    const id = leerId(request, "Inmobiliaria no encontrada");
+    const result = await activityService.markAllAsRead(id, request.sellerId!);
+    response.json(result);
+  }
+
   async unreadCount(request: Request, response: Response): Promise<void> {
     const id = leerId(request, "Inmobiliaria no encontrada");
     const result = await activityService.unreadCount(id, request.sellerId!);
