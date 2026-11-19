@@ -1,0 +1,97 @@
+.cabecera {
+  display: flex;
+  gap: 1.25rem;
+  align-items: center;
+  flex-wrap: wrap;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  background: var(--superficie);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  box-shadow: var(--sombra);
+}
+
+.logo {
+  flex: 0 0 5rem;
+  width: 5rem;
+  height: 5rem;
+  border-radius: 16px;
+  object-fit: cover;
+  display: grid;
+  place-items: center;
+  background: var(--primario-claro);
+  color: var(--primario-oscuro);
+  font-family: var(--fuente-titulos);
+  font-size: 2.2rem;
+  font-weight: 700;
+}
+
+.info {
+  flex: 1 1 18rem;
+  min-width: 0;
+}
+
+.info h1 {
+  margin-bottom: 0.2rem;
+}
+
+.valoracion {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.contacto {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1.25rem;
+  margin: 0.5rem 0 0;
+  font-size: 0.95rem;
+}
+
+.seccion {
+  margin-bottom: 2rem;
+}
+
+.grilla {
+  display: grid;
+  gap: 1.1rem;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+}
+
+.resenas {
+  display: grid;
+  gap: 2rem;
+  grid-template-columns: minmax(0, 1fr) 22rem;
+  align-items: start;
+}
+
+.resena {
+  padding: 0.9rem 0;
+  border-bottom: 1px solid var(--borde);
+}
+
+.resena:last-child {
+  border-bottom: none;
+}
+
+.formulario {
+  display: grid;
+  gap: 0.8rem;
+  padding: 1.1rem 1.25rem;
+  background: var(--superficie);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  box-shadow: var(--sombra);
+}
+
+.formulario h3 {
+  margin: 0;
+}
+
+@media (max-width: 860px) {
+  .resenas {
+    grid-template-columns: 1fr;
+  }
+}

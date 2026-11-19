@@ -1,0 +1,17 @@
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+.ayuda {
+  font-size: 0.8rem;
+  color: var(--texto-suave);
+}
+
+.error {
+  font-size: 0.85rem;
+  color: var(--error);
+  margin: 0;
+}
