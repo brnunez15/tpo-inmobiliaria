@@ -3,22 +3,22 @@
   display: inline-block;
   padding: 2px 10px;
   border-radius: 999px;
-  background: #eee;
+  background: var(--primario-claro);
   font-size: 0.8rem;
   font-weight: bold;
   white-space: nowrap;
 }
 
-/* Propiedad */
-.DRAFT { background: #ddd; color: #555; }
-.PUBLISHED { background: #50fa7b; }
-.PAUSED { background: #f1fa8c; }
-.RESERVED { background: #ffb86c; }
-.SOLD, .RENTED { background: #8be9fd; }
-.CANCELLED { background: #ff5555; color: white; }
+/* Propiedad: tonos suaves que combinan con la paleta */
+.DRAFT { background: #e4e2d6; color: #5d6670; }
+.PUBLISHED { background: #dbe8d5; color: #3f6b3a; }
+.PAUSED { background: #f1e7c4; color: #7a5d12; }
+.RESERVED { background: #f0dccd; color: #7a4a30; }
+.SOLD, .RENTED { background: #d5dde6; color: #26303b; }
+.CANCELLED { background: #ecd0cc; color: #8a2a22; }
 
 /* Solicitud de visita */
-.PENDING { background: #f1fa8c; }
-.CONFIRMED { background: #50fa7b; }
-.COMPLETED { background: #8be9fd; }
-.REJECTED { background: #ff5555; color: white; }
+.PENDING { background: #f1e7c4; color: #7a5d12; }
+.CONFIRMED { background: #dbe8d5; color: #3f6b3a; }
+.COMPLETED { background: #d5dde6; color: #26303b; }
+.REJECTED { background: #ecd0cc; color: #8a2a22; }

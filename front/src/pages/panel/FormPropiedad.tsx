@@ -225,7 +225,7 @@ function FormularioPropiedad({ inicial, propiedadId }: { inicial: Formulario; pr
 
   return (
     <form className="formulario" onSubmit={handleSubmit} noValidate>
-      <h1>{propiedadId === undefined ? "🏠 Nueva propiedad" : "✏️ Editar propiedad"}</h1>
+      <h1>{propiedadId === undefined ? "Nueva propiedad" : "Editar propiedad"}</h1>
       <Alerta>{errorGeneral}</Alerta>
 
       <label>

@@ -14,12 +14,12 @@ import estilos from "./LayoutPanel.module.css";
 const POLLING_MS = 10000;
 
 const SECCIONES = [
-  { ruta: "/panel/propiedades", icono: "📋", texto: "Mis propiedades" },
-  { ruta: "/panel/visitas", icono: "📅", texto: "Visitas" },
-  { ruta: "/panel/consultas", icono: "💬", texto: "Consultas" },
-  { ruta: "/panel/actividad", icono: "🔔", texto: "Actividad" },
-  { ruta: "/panel/reportes", icono: "📊", texto: "Reportes" },
-  { ruta: "/panel/inmobiliaria", icono: "🏢", texto: "Mi inmobiliaria" },
+  { ruta: "/panel/propiedades", texto: "Mis propiedades" },
+  { ruta: "/panel/visitas", texto: "Visitas" },
+  { ruta: "/panel/consultas", texto: "Consultas" },
+  { ruta: "/panel/actividad", texto: "Actividad" },
+  { ruta: "/panel/reportes", texto: "Reportes" },
+  { ruta: "/panel/inmobiliaria", texto: "Mi inmobiliaria" },
 ];
 
 // NavLink con className como función: recibe si la ruta está activa (Clase 15)
@@ -40,15 +40,18 @@ export default function LayoutPanel() {
   return (
     <>
       <nav className={estilos.nav}>
-        <strong className={estilos.marca}>🏠 Panel del vendedor</strong>
-        {agencyId !== null &&
-          SECCIONES.map((s) => (
-            <NavLink key={s.ruta} to={s.ruta} className={claseLink}>
-              {s.icono}
-              <span className={estilos.texto}>{s.texto}</span>
-              {s.ruta === "/panel/actividad" && sinLeer > 0 && <span className={estilos.contador}>{sinLeer}</span>}
-            </NavLink>
-          ))}
+        <div className={estilos.marca}>
+          Casa a Casa <span className={estilos.subtitulo}>Panel del vendedor</span>
+        </div>
+        <div className={estilos.secciones}>
+          {agencyId !== null &&
+            SECCIONES.map((s) => (
+              <NavLink key={s.ruta} to={s.ruta} className={claseLink}>
+                {s.texto}
+                {s.ruta === "/panel/actividad" && sinLeer > 0 && <span className={estilos.contador}>{sinLeer}</span>}
+              </NavLink>
+            ))}
+        </div>
         <button type="button" className={estilos.salir} onClick={salir}>
           Salir
         </button>

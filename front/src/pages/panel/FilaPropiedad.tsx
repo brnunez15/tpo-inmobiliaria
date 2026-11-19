@@ -72,7 +72,7 @@ export default function FilaPropiedad({ propiedad: p, onCambio }: { propiedad: P
         {p.consultasSinResponder !== undefined && p.consultasSinResponder > 0 && (
           <p>
             <Link to="/panel/consultas?unanswered=true" className="alerta">
-              💬 {p.consultasSinResponder} consulta(s) sin responder
+              {p.consultasSinResponder} consulta(s) sin responder
             </Link>
           </p>
         )}

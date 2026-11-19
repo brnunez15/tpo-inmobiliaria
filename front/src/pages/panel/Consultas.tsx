@@ -100,7 +100,7 @@ export default function Consultas() {
       {cargando && <Cargando texto="Cargando consultas…" />}
       {error && <ErrorCarga error={`No se pudieron cargar las consultas: ${error}`} onReintentar={recargar} />}
       {!cargando && !error && consultas?.length === 0 && (
-        <Vacio texto={soloSinResponder ? "No tenés consultas sin responder. 🎉" : "Todavía no recibiste consultas."} />
+        <Vacio texto={soloSinResponder ? "No tenés consultas sin responder." : "Todavía no recibiste consultas."} />
       )}
 
       {!cargando &&
@@ -111,7 +111,9 @@ export default function Consultas() {
               <strong>{c.authorName}</strong>: “{c.content}” <small>({timeAgo(c.createdAt)})</small>
             </p>
             {c.response ? (
-              <p>↳ {c.response} — respondida ✓</p>
+              <p>
+                <strong>Tu respuesta:</strong> {c.response}
+              </p>
             ) : (
               <FormRespuesta comentario={c} onRespondida={(r) => marcarRespondida(c.id, r)} />
             )}

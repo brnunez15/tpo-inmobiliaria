@@ -41,7 +41,7 @@ function describir(a: Activity): { texto: string; detalle?: string; destino: str
     case "REVIEW":
       return {
         texto: `${ACTIVITY_LABELS.REVIEW} de ${a.review?.authorName ?? "un interesado"}`,
-        detalle: a.review ? `${"★".repeat(a.review.rating)} “${a.review.content}”` : undefined,
+        detalle: a.review ? `Calificación ${a.review.rating}/5 · “${a.review.content}”` : undefined,
         destino: "/panel/inmobiliaria",
       };
   }
@@ -83,7 +83,7 @@ export default function Actividad() {
   return (
     <>
       <div className="titulo-con-accion">
-        <h1>Actividad {sinLeer > 0 && <small>🔔 {sinLeer} nuevas</small>}</h1>
+        <h1>Actividad {sinLeer > 0 && <small className="suave">· {sinLeer} nuevas</small>}</h1>
         <button type="button" className="boton" disabled={sinLeer === 0} onClick={marcarTodas}>
           Marcar todas como leídas
         </button>
@@ -100,7 +100,7 @@ export default function Actividad() {
             style={{ cursor: "pointer" }}
           >
             <p>
-              {a.read ? "○" : "●"} {texto} <small>({timeAgo(a.createdAt)})</small>
+              {texto} <small>({timeAgo(a.createdAt)})</small>
             </p>
             {detalle && <small>{detalle}</small>}
           </div>

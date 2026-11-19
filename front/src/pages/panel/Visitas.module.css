@@ -4,15 +4,15 @@
   margin-bottom: 0.5rem;
   border-left: 4px solid transparent;
   border-radius: 8px;
-  background: white;
+  background: var(--superficie);
 }
 
 .solicitud p { margin: 0.15rem 0; }
-.solicitud small { color: #777; }
+.solicitud small { color: var(--texto-suave); }
 
-.PENDING { border-left-color: #f1fa8c; }
-.CONFIRMED { border-left-color: #50fa7b; }
-.COMPLETED { border-left-color: #8be9fd; }
-.REJECTED, .CANCELLED { border-left-color: #ff5555; opacity: 0.6; }
+.PENDING { border-left-color: #d9b85a; }
+.CONFIRMED { border-left-color: #3f6b3a; }
+.COMPLETED { border-left-color: var(--azul); }
+.REJECTED, .CANCELLED { border-left-color: #b03a2e; opacity: 0.6; }
 
 .grupo { margin-top: 1.25rem; font-size: 1.05rem; }

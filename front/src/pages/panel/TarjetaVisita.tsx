@@ -50,7 +50,7 @@ export default function TarjetaVisita({
   return (
     <div className={`${estilos.solicitud} ${estilos[v.status]}`}>
       <p>
-        <strong>{v.requesterName}</strong> · 📞 {v.requesterPhone} · {formatDateTime(v.proposedDate)}{" "}
+        <strong>{v.requesterName}</strong> · Tel. {v.requesterPhone} · {formatDateTime(v.proposedDate)}{" "}
         <BadgeEstadoVisita status={v.status} />
       </p>
       {v.message && <small>“{v.message}”</small>}

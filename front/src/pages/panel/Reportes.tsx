@@ -12,7 +12,7 @@
  *   - GET /agencies/:agencyId/reports/avg-time-on-market
  */
 import type { CSSProperties } from "react";
-import type { AvgTimeOnMarket, MonthlyItem, StatusSummaryItem } from "../../api/types";
+import type { AvgTimeOnMarket, MonthlyItem, PropertyStatus, StatusSummaryItem } from "../../api/types";
 import { getAgencyId } from "../../auth/sesion";
 import { BadgeEstadoPropiedad } from "../../components/Badge";
 import { Cargando, ErrorCarga, Vacio } from "../../components/Estados";
@@ -20,6 +20,17 @@ import { useFetch } from "../../hooks/useFetch";
 import estilos from "./Reportes.module.css";
 
 const MESES = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
+
+// Color de la barra de cada estado: el mismo tono que su etiqueta (Badge.module.css)
+const COLOR_ESTADO: Record<PropertyStatus, string> = {
+  DRAFT: "#9a9e94",
+  PUBLISHED: "#5f9a56",
+  PAUSED: "#d4ac3f",
+  RESERVED: "#c58a64",
+  SOLD: "#4a6178",
+  RENTED: "#4a6178",
+  CANCELLED: "#b5534a",
+};
 
 // "2026-11" → "Nov 26"
 function nombreMes(clave: string): string {
@@ -51,7 +62,6 @@ export default function Reportes() {
 
   const maximoEstado = Math.max(0, ...porEstado.datos.map((f) => f.count));
   const maximoMes = Math.max(0, ...mensual.datos.map((m) => Math.max(m.published, m.closed)));
-  const esActivo = (status: string) => status === "PUBLISHED" || status === "RESERVED";
 
   return (
     <>
@@ -63,7 +73,7 @@ export default function Reportes() {
         {porEstado.datos.map(({ status, count }) => {
           const estiloBarra = {
             width: `${maximoEstado === 0 ? 0 : (count / maximoEstado) * 100}%`,
-            "--color-barra": esActivo(status) ? "#50fa7b" : "#6272a4",
+            "--color-barra": COLOR_ESTADO[status],
           } as CSSProperties;
           return (
             <div key={status} className={estilos.fila}>
@@ -78,8 +88,8 @@ export default function Reportes() {
       <section className={estilos.tarjeta}>
         <h2>Publicaciones y ventas/alquileres por mes</h2>
         <p>
-          <span style={{ color: "#6272a4" }}>■</span> Publicadas · <span style={{ color: "#50fa7b" }}>■</span>{" "}
-          Vendidas/alquiladas
+          <span className={estilos.muestra} style={{ "--color-barra": "#26303b" } as CSSProperties} /> Publicadas{" "}
+          <span className={estilos.muestra} style={{ "--color-barra": "#9a694e" } as CSSProperties} /> Vendidas/alquiladas
         </p>
         {mensual.datos.length === 0 && <Vacio texto="Todavía no hay movimientos." />}
         <div className={estilos.meses}>
@@ -89,12 +99,12 @@ export default function Reportes() {
                 <div
                   className={estilos.vertical}
                   title={`${m.published} publicadas`}
-                  style={{ height: `${maximoMes === 0 ? 0 : (m.published / maximoMes) * 100}%`, "--color-barra": "#6272a4" } as CSSProperties}
+                  style={{ height: `${maximoMes === 0 ? 0 : (m.published / maximoMes) * 100}%`, "--color-barra": "#26303b" } as CSSProperties}
                 />
                 <div
                   className={estilos.vertical}
                   title={`${m.closed} vendidas/alquiladas`}
-                  style={{ height: `${maximoMes === 0 ? 0 : (m.closed / maximoMes) * 100}%`, "--color-barra": "#50fa7b" } as CSSProperties}
+                  style={{ height: `${maximoMes === 0 ? 0 : (m.closed / maximoMes) * 100}%`, "--color-barra": "#9a694e" } as CSSProperties}
                 />
               </div>
               <span>{nombreMes(m.month)}</span>

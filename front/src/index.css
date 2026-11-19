@@ -2,60 +2,98 @@
    las clases comunes (botones, formularios, mensajes, listados) las usan
    todas las pantallas. Lo propio de un componente va en su .module.css (Clase 15). */
 
+/* Paleta "Casa a Casa": azul noche, cobre y crema.
+   Todas las pantallas leen los colores de acá con var(--nombre). */
+:root {
+  --azul: #26303b;
+  --cobre: #9a694e;
+  --crema: #ebebdd;
+
+  --primario: var(--cobre);
+  --primario-oscuro: var(--azul);
+  --primario-claro: #f3ebe3;
+  --acento: var(--cobre);
+  --error: #b03a2e;
+  --exito: #3f6b3a;
+  --fondo: var(--crema);
+  --superficie: #ffffff;
+  --borde: #d9d7c8;
+  --texto: var(--azul);
+  --texto-suave: #5d6670;
+  --radio: 10px;
+  --sombra: 0 2px 10px rgb(38 48 59 / 0.08);
+  --fuente-titulos: system-ui, sans-serif;
+}
+
 *, *::before, *::after { box-sizing: border-box; }
 
 body {
   font-family: system-ui, sans-serif;
   margin: 0;
-  background: #f4f4f7;
-  color: #222;
+  background: var(--fondo);
+  color: var(--texto);
 }
 
 /* ── Comunes ──────────────────────────────────────────────────── */
 
-.contenido { max-width: 1000px; margin: 0 auto; padding: 1.5rem 1.5rem 4rem; }
+.contenido { max-width: 1000px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
 
-.mensaje { padding: 2rem; text-align: center; color: #666; }
-.mensaje.error, .error { color: #c0392b; }
-.cargando { padding: 2rem; text-align: center; color: #666; }
-.aviso { padding: 0.5rem 0.75rem; border-radius: 6px; background: #eef9f0; color: #1e7b34; }
+h1 { margin: 0 0 1.25rem; font-size: 1.75rem; color: var(--azul); }
+h2 { color: var(--azul); }
+
+.mensaje { padding: 2rem; text-align: center; color: var(--texto-suave); }
+.error { color: var(--error); }
+/* Error dentro de una pantalla o formulario: caja roja suave */
+.mensaje.error { padding: 0.75rem 1rem; border-radius: 8px; background: #f6e3e0; text-align: left; }
+.cargando { padding: 2rem; text-align: center; color: var(--texto-suave); }
+.aviso { padding: 0.75rem 1rem; border-radius: 8px; background: #e7efe3; color: var(--exito); }
 
 .boton {
   display: inline-block;
-  padding: 4px 10px;
-  border: 1px solid #bbb;
-  border-radius: 6px;
+  padding: 6px 14px;
+  border: 1px solid var(--borde);
+  border-radius: 8px;
   background: white;
   color: inherit;
   font-size: 0.9rem;
+  font-weight: 500;
   text-decoration: none;
   cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
 }
 
+.boton:hover:not(:disabled) { border-color: var(--cobre); }
+
 .boton:disabled { opacity: 0.5; cursor: default; }
-.boton.primario { border-color: #6272a4; background: #6272a4; color: white; }
-.boton.peligro { border-color: #c0392b; color: #c0392b; }
+.boton.primario { border-color: var(--cobre); background: var(--cobre); color: white; }
+.boton.primario:hover:not(:disabled) { border-color: var(--azul); background: var(--azul); }
+.boton.peligro { border-color: #e2b9b3; color: var(--error); }
+.boton.peligro:hover:not(:disabled) { border-color: var(--error); background: #f6e3e0; }
 
 .botones { display: flex; flex-wrap: wrap; gap: 0.5rem; }
 
-.titulo-con-accion { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 1rem; }
+.titulo-con-accion { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 1.25rem; }
+.titulo-con-accion h1 { margin: 0; }
 
-.alerta { color: #c0392b; font-weight: bold; }
+.alerta { color: var(--cobre); font-size: 0.9rem; font-weight: 600; }
 
-.chips { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 0.75rem; }
+.chips { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 1.25rem; }
 
 .chip {
   padding: 4px 12px;
   border: none;
   border-radius: 999px;
-  background: #e8e8ef;
-  color: #222;
+  background: var(--superficie);
+  border: 1px solid var(--borde);
+  color: var(--texto);
   font-size: 0.9rem;
   text-decoration: none;
   cursor: pointer;
 }
 
-.chip.activo { background: #6272a4; color: white; }
+.chip:hover:not(:disabled) { border-color: var(--azul); }
+.chip:disabled { opacity: 0.4; cursor: default; }
+.chip.activo { border-color: var(--azul); background: var(--azul); color: var(--crema); }
 
 /* ── Listados ─────────────────────────────────────────────────── */
 
@@ -64,34 +102,56 @@ body {
   grid-template-columns: 120px 1fr auto;
   gap: 1rem;
   align-items: center;
-  padding: 0.75rem;
-  margin-bottom: 0.75rem;
-  border-radius: 8px;
-  background: white;
-  box-shadow: 0 2px 8px rgb(0 0 0 / 0.08);
+  padding: 1rem;
+  margin-bottom: 0.9rem;
+  border-radius: var(--radio);
+  background: var(--superficie);
+  box-shadow: var(--sombra);
 }
+
+.fila .botones { margin-top: 0.6rem; }
 
 .fila img, .fila .sin-foto { width: 120px; height: 80px; object-fit: cover; border-radius: 6px; }
-.fila .sin-foto { display: grid; place-items: center; background: #e8e8ef; color: #777; font-size: 0.8rem; }
-.fila h2 { margin: 0 0 0.25rem; font-size: 1.05rem; }
-.fila p { margin: 0.15rem 0; color: #555; }
+.fila .sin-foto { display: grid; place-items: center; background: var(--primario-claro); color: var(--texto-suave); font-size: 0.8rem; }
+.fila h2 { margin: 0 0 0.25rem; font-size: 1.1rem; }
+.fila p { margin: 0.15rem 0; color: var(--texto-suave); }
 
 .item {
-  padding: 0.6rem 0.9rem;
-  margin-bottom: 0.5rem;
-  border-left: 4px solid #bd93f9;
-  border-radius: 8px;
-  background: white;
+  padding: 0.9rem 1.1rem;
+  margin-bottom: 0.6rem;
+  border-left: 4px solid var(--borde);
+  border-radius: var(--radio);
+  background: var(--superficie);
+  box-shadow: var(--sombra);
 }
 
+.item .botones { margin-top: 0.5rem; }
+
 .item p { margin: 0.15rem 0; }
-.item small { color: #777; }
-.item.respondida { border-left-color: #50fa7b; }
-.item.no-leida { border-left-color: #ff79c6; font-weight: 500; }
+.item small { color: var(--texto-suave); }
+.item.respondida { border-left-color: var(--exito); }
+.item.no-leida { border-left-color: var(--cobre); font-weight: 500; }
 
 /* ── Formularios (Clase 12) ───────────────────────────────────── */
 
-.formulario { display: flex; flex-direction: column; gap: 0.75rem; max-width: 640px; }
+/* El formulario es una tarjeta blanca */
+.formulario {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  max-width: 760px;
+  padding: 1.5rem;
+  border-radius: var(--radio);
+  background: var(--superficie);
+  box-shadow: var(--sombra);
+}
+
+.formulario fieldset { margin: 0; padding: 0.9rem 1rem; border: 1px solid var(--borde); border-radius: 8px; }
+.formulario legend { padding: 0 0.4rem; font-size: 0.9rem; font-weight: 600; }
+
+/* Caja para la acción que no se puede deshacer (Mi inmobiliaria) */
+.zona-peligro { max-width: 760px; margin-top: 2rem; padding: 1.25rem 1.5rem; border: 1px solid #e2b9b3; border-radius: var(--radio); background: #fbf3f1; }
+.zona-peligro h2 { margin-top: 0; color: var(--error); font-size: 1.1rem; }
 .formulario label { display: flex; flex-direction: column; gap: 0.25rem; font-weight: 500; }
 .formulario input, .formulario select, .formulario textarea { padding: 6px 10px; font-size: 1rem; font-family: inherit; }
 .formulario .error { margin: -0.4rem 0 0; font-size: 0.9rem; }
@@ -103,3 +163,59 @@ body {
   .fila { grid-template-columns: 1fr; }
   .fila img, .fila .sin-foto { width: 100%; height: 160px; }
 }
+
+/* ── Variables y clases que usan las pantallas públicas (Brisa) ───
+   Los .module.css de Listado, Detalle, Sitio, Login, Registro, Campo
+   y TarjetaPropiedad leen estas variables con var(--nombre). */
+
+/* Ancho máximo centrado y espacio de la página */
+.contenedor { max-width: 1100px; margin: 0 auto; padding: 0 1.25rem; }
+.pagina { padding: 1.5rem 1.25rem 3rem; }
+
+.suave { color: var(--texto-suave); }
+
+.boton.chico { padding: 3px 8px; font-size: 0.85rem; }
+.boton.enlace { border-color: transparent; background: transparent; color: var(--primario); }
+
+.acciones { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+
+/* Dos campos lado a lado en el registro; en celular, uno abajo del otro */
+.fila-form { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+
+/* Oculto a la vista pero lo sigue leyendo un lector de pantalla */
+.visualmente-oculto {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* Inputs con el mismo aspecto en todas las pantallas */
+input:not([type="checkbox"]):not([type="radio"]), select, textarea {
+  padding: 6px 10px;
+  border: 1px solid var(--borde);
+  border-radius: 6px;
+  background: white;
+  font-size: 0.95rem;
+  font-family: inherit;
+}
+
+/* Los campos ocupan todo el ancho de su columna (las pantallas de Brisa lo esperan así) */
+input:not([type="checkbox"]):not([type="radio"]), select { width: 100%; min-width: 0; }
+textarea { width: 100%; }
+
+/* Links con el color de la paleta */
+a { color: var(--cobre); }
+
+textarea { min-height: 5rem; }
+
+label { font-size: 0.9rem; font-weight: 500; }
+
+@media (max-width: 600px) {
+  .fila-form { grid-template-columns: 1fr; }
+}
+/* Imágenes y columnas de las pantallas públicas: nunca más anchas que la pantalla del celular */
+img { max-width: 100%; }
+.pagina > div > div { min-width: 0; }

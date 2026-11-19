@@ -87,7 +87,7 @@ function FormInmobiliaria({ inmobiliaria }: { inmobiliaria: AgencyProfile }) {
           officeAddress: form.officeAddress.trim() === "" ? null : form.officeAddress.trim(),
         },
       });
-      setMensaje("Datos guardados ✓");
+      setMensaje("Datos guardados.");
     } catch (err) {
       const apiError = toApiError(err);
       setErrores(fieldErrors(apiError));
@@ -122,7 +122,8 @@ function FormInmobiliaria({ inmobiliaria }: { inmobiliaria: AgencyProfile }) {
           </Link>
         </div>
         <p>
-          ★ {inmobiliaria.rating.average === null ? "sin reseñas" : `${inmobiliaria.rating.average.toFixed(1)} (${inmobiliaria.rating.count} reseñas)`}
+          Calificación:{" "}
+          {inmobiliaria.rating.average === null ? "sin reseñas" : `${inmobiliaria.rating.average.toFixed(1)} de 5 (${inmobiliaria.rating.count} reseñas)`}
         </p>
         <Alerta>{errorGeneral}</Alerta>
         <Alerta tipo="exito">{mensaje}</Alerta>
@@ -169,12 +170,13 @@ function FormInmobiliaria({ inmobiliaria }: { inmobiliaria: AgencyProfile }) {
         </div>
       </form>
 
-      <hr style={{ margin: "2rem 0" }} />
-      <h2>Eliminar inmobiliaria</h2>
-      <p>Solo se puede si no tiene propiedades Publicadas ni Reservadas.</p>
-      <button type="button" className="boton peligro" onClick={eliminar}>
-        Eliminar inmobiliaria
-      </button>
+      <section className="zona-peligro">
+        <h2>Eliminar inmobiliaria</h2>
+        <p>Solo se puede si no tiene propiedades Publicadas ni Reservadas.</p>
+        <button type="button" className="boton peligro" onClick={eliminar}>
+          Eliminar inmobiliaria
+        </button>
+      </section>
     </>
   );
 }
