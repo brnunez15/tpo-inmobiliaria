@@ -3,6 +3,7 @@ import { z } from "zod";
 import { agencyService } from "../services/inmobiliaria.service";
 import { leerId, validar } from "./helpers";
 import { PropertyStatus } from "../entities/enums";
+import { repositorioGaleriaImagen } from "../repositories/galeria-imagen.repository";
 
 const updateSchema = z.object({
   name: z.string().trim().min(1).max(120).optional(),
@@ -40,8 +41,26 @@ class AgencyController {
 
   async getProperties(request: Request, response: Response): Promise<void> {
     const id = leerId(request, "Inmobiliaria no encontrada");
-    const properties = await agencyService.getProperties(id);
-    response.json(properties);
+
+    const paginaPedida = Number(request.query.page);
+    const limitePedido = Number(request.query.limit);
+    const pageNum = Number.isInteger(paginaPedida) && paginaPedida >= 1 ? paginaPedida : 1;
+    const limitNum = Number.isInteger(limitePedido) && limitePedido >= 1 ? Math.min(100, limitePedido) : 20;
+
+    const todas = await agencyService.getProperties(id);
+    const inicio = (pageNum - 1) * limitNum;
+    const pagina = todas.slice(inicio, inicio + limitNum);
+
+    const portadas = await repositorioGaleriaImagen.buscarPortadas(pagina.map((p) => p.id));
+    const data = pagina.map((propiedad) => {
+      const portada = portadas.find((imagen) => imagen.property.id === propiedad.id);
+      return { ...propiedad, coverImageUrl: portada ? portada.url : null };
+    });
+
+    response.json({
+      data,
+      meta: { total: todas.length, page: pageNum, limit: limitNum, totalPages: Math.ceil(todas.length / limitNum) },
+    });
   }
 
   // GET /agencies/:id/my-properties?status=PUBLISHED&page=1&limit=10 — "Mis propiedades" (solo el dueño)
