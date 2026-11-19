@@ -8,6 +8,7 @@ import { repositorioPropiedad } from "../repositories/property.repository";
 import { repositorioComentario } from "../repositories/comment.repository";
 import { repositorioGaleriaImagen } from "../repositories/galeria-imagen.repository";
 import { repositorioReseña } from "../repositories/review.repository";
+import { ErrorNombreInmobiliariaDuplicado } from "./auth.service";
 
 export class ErrorInmobiliariaNoEncontrada extends ErrorNoEncontrado {
   constructor(mensaje = "Inmobiliaria no encontrada") {
@@ -51,6 +52,12 @@ class ServicioInmobiliaria {
     const inmobiliaria = await repositorioInmobiliaria.buscarPorId(id);
     if (!inmobiliaria) throw new ErrorInmobiliariaNoEncontrada();
     if (inmobiliaria.seller.id !== vendedorId) throw new ErrorSinPermiso();
+
+        // El nombre de fantasía es único en toda la plataforma (regla del enunciado)
+    if (datos.name !== undefined && datos.name !== inmobiliaria.name) {
+      const repetida = await repositorioInmobiliaria.buscarPorNombre(datos.name);
+      if (repetida && repetida.id !== id) throw new ErrorNombreInmobiliariaDuplicado();
+    }
 
     Object.assign(inmobiliaria, datos);
     const guardada = await repositorioInmobiliaria.guardar(inmobiliaria);

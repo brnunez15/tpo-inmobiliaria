@@ -50,8 +50,10 @@ class AgencyController {
     const { status } = validar(misPropiedadesSchema, request.query);
 
     // Misma paginación que GET /properties
-    const pageNum = Math.max(1, Number(request.query.page ?? 1));
-    const limitNum = Math.min(100, Math.max(1, Number(request.query.limit ?? 20)));
+    const paginaPedida = Number(request.query.page);
+    const limitePedido = Number(request.query.limit);
+    const pageNum = Number.isInteger(paginaPedida) && paginaPedida >= 1 ? paginaPedida : 1;
+    const limitNum = Number.isInteger(limitePedido) && limitePedido >= 1 ? Math.min(100, limitePedido) : 20;
 
     const { data, total } = await agencyService.obtenerMisPropiedades(
       id,

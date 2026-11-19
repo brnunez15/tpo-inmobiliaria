@@ -71,10 +71,11 @@ class PropertyController {
   async findAll(request: Request, response: Response): Promise<void> {
     const { type, operation, minPrice, maxPrice, area, rooms, tags, search, sortBy, order, currency, page, limit } = request.query;
 
-    const pageNum = Math.max(1, Number(page ?? 1));
-    const limitNum = Math.min(100, Math.max(1, Number(limit ?? 20)));
-
-    const { data, total } = await propertyService.findAll(
+        const paginaPedida = Number(page);
+        const limitePedido = Number(limit);
+        const pageNum = Number.isInteger(paginaPedida) && paginaPedida >= 1 ? paginaPedida : 1;
+        const limitNum = Number.isInteger(limitePedido) && limitePedido >= 1 ? Math.min(100, limitePedido) : 20;
+        const { data, total } = await propertyService.findAll(
       {
         type: typeof type === "string" ? type : undefined,
         operation: typeof operation === "string" ? operation : undefined,
